@@ -1,0 +1,27 @@
+# Ajustes do modo portatil. Edite com o Bloco de Notas.
+# Linhas com # sao comentarios.
+
+# Porta do portal (a tela que voce usa). Se estiver ocupada nesta maquina,
+# o INICIAR.bat procura a proxima livre sozinho - nao precisa mexer aqui.
+PORTA_PORTAL=5000
+
+# Porta interna do bot (WhatsApp/Telegram). Idem.
+PORTA_BOT=3005
+
+# 1 = abre o navegador sozinho quando tudo estiver pronto. 0 = nao abre.
+ABRIR_NAVEGADOR=1
+
+# 1 = so aceita conexao desta propria maquina (recomendado).
+# 0 = libera para outros aparelhos do mesmo wifi (celular, notebook).
+#     Use 0 apenas em rede que voce confia: quem alcancar a porta vai ver a
+#     tela de login, e o bot publica no SEU grupo.
+SOMENTE_ESTA_MAQUINA=1
+
+# 0 = entra direto, sem tela de login (padrao no modo portatil).
+# 1 = pede usuario e senha.
+#     Rodando so nesta maquina, a senha nao protege nada: quem esta aqui abre
+#     o .env.local do pendrive e le a senha. Por isso o padrao e' entrar direto.
+#     TRAVA DE SEGURANCA: se voce colocar SOMENTE_ESTA_MAQUINA=0 acima, o login
+#     volta a ser exigido automaticamente, senao qualquer um do mesmo wifi
+#     publicaria no seu grupo de WhatsApp.
+PEDIR_SENHA=0

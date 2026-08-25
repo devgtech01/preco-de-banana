@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Ofertas & Divulgação Multi-Marketplace</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0b1329;
+            --bg-card: #16203a;
+            --bg-card-hover: #1c2a4c;
+            --border-color: #263859;
+            --accent-yellow: #ffe600;
+            --accent-green: #25d366;
+            --accent-blue: #38bdf8;
+            --accent-amazon: #ff9900;
+            --accent-shopee: #ee4d2d;
+            --accent-ali: #ff4747;
+            --accent-kabum: #0b2ea1;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: #f8fafc;
+        }
+
+        .navbar-brand-title {
+            font-weight: 800;
+            color: var(--accent-yellow);
+            letter-spacing: -0.5px;
+        }
+
+        .card-custom {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-vps {
+            background: linear-gradient(135deg, #16203a 0%, #0d172e 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .progress-vps {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #0b1329;
+            overflow: hidden;
+        }
+
+        .btn-ml {
+            background-color: var(--accent-yellow);
+            color: #1e293b;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        .btn-ml:hover {
+            background-color: #e6ce00;
+            color: #0f172a;
+            transform: translateY(-1px);
+        }
+
+        .btn-publish {
+            background-color: var(--accent-green);
+            color: #000000;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        .btn-publish:hover {
+            background-color: #1eb856;
+            color: #000000;
+            transform: translateY(-1px);
+        }
+
+        .product-img {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .table-responsive {
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .table {
+            margin-bottom: 0;
+        }
+        .table th {
+            background-color: #16203a;
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .table td {
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .price-tag {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #4ade80;
+        }
+        .badge-destaque {
+            background-color: var(--accent-yellow);
+            color: #0f172a;
+            font-weight: 800;
+            font-size: 0.72rem;
+            border-radius: 4px;
+            padding: 2px 6px;
+        }
+        .badge-shipping {
+            background-color: #16a34a;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .badge-coupon {
+            background-color: #064e3b;
+            color: #34d399;
+            border: 1px solid #059669;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        .badge-ml {
+            background-color: #ffe600;
+            color: #1e293b;
+            font-weight: 800;
+        }
+        .badge-amazon {
+            background-color: var(--accent-amazon);
+            color: #0f172a;
+            font-weight: 800;
+        }
+        .badge-shopee {
+            background-color: var(--accent-shopee);
+            color: #ffffff;
+            font-weight: 800;
+        }
+        .badge-ali {
+            background-color: var(--accent-ali);
+            color: #ffffff;
+            font-weight: 800;
+        }
+        .badge-kabum {
+            background-color: var(--accent-kabum);
+            color: #ffffff;
+            font-weight: 800;
+        }
+
+        .qr-container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: #16203a;
+            color: var(--accent-yellow);
+        }
+        .accordion-button {
+            background-color: #111a30;
+            color: #f8fafc;
+            font-weight: 700;
+            border-radius: 12px !important;
+        }
+    </style>
+</head>
+<body class="py-4">
+    <div class="container-fluid px-4">
+        
+        <!-- HEADER PRINCIPAL -->
+        <header class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+            <div class="d-flex align-items-center gap-3">
+                <i class="fa-solid fa-bolt-lightning fa-2x text-warning"></i>
+                <div>
+                    <h2 class="h4 mb-0 navbar-brand-title">Portal de Ofertas & Divulgação Automática</h2>
+                    <p class="text-muted small mb-0">Scraper Multi-Marketplace & Bot Transmissor WhatsApp/Telegram</p>
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-warning btn-sm fw-bold px-3 py-2" data-bs-toggle="modal" data-bs-target="#settingsModal" onclick="loadBotSettings()">
+                    <i class="fa-solid fa-gear me-1"></i> Configurações & Afiliados
+                </button>
+                <a href="/logout" class="btn btn-outline-danger btn-sm fw-bold px-3 py-2" title="Sair do Portal">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i> Sair
+                </a>
+            </div>
+        </header>
+
+        <!-- CARDS DE MONITORAMENTO DE RECURSOS E REDES (VPS / WHATSAPP / TELEGRAM) -->
+        <div class="row g-3 mb-4">
+            
+            <!-- CPU VPS -->
+            <div class="col-md-3">
+                <div class="card-vps shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small fw-semibold"><i class="fa-solid fa-microchip me-1 text-info"></i> Uso de CPU (VPS)</span>
+                        <span id="vpsCpuBadge" class="badge bg-info bg-opacity-20 text-info fw-bold">0.0%</span>
+                    </div>
+                    <div class="progress progress-vps">
+                        <div id="vpsCpuBar" class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="text-muted style-sub mt-2 small" id="vpsCpuSub">Processamento estável</div>
+                </div>
+            </div>
+
+            <!-- RAM VPS -->
+            <div class="col-md-3">
+                <div class="card-vps shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small fw-semibold"><i class="fa-solid fa-memory me-1 text-warning"></i> Memória RAM (VPS)</span>
+                        <span id="vpsRamBadge" class="badge bg-warning bg-opacity-20 text-warning fw-bold">0.0%</span>
+                    </div>
+                    <div class="progress progress-vps">
+                        <div id="vpsRamBar" class="progress-bar bg-warning" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="text-muted style-sub mt-2 small" id="vpsRamSub">RAM Processo: 0 MB</div>
+                </div>
+            </div>
+
+            <!-- STATUS WHATSAPP -->
+            <div class="col-md-3">
+                <div class="card-vps shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small fw-semibold"><i class="fa-brands fa-whatsapp me-1 text-success"></i> WhatsApp Status</span>
+                        <span id="waStatusBadge" class="badge bg-secondary">Verificando</span>
+                    </div>
+                    <div class="small fw-semibold text-light mt-1" id="waStatusText">Consultando Bot...</div>
+                    <button class="btn btn-link btn-sm p-0 text-success text-decoration-none mt-1 fw-bold" data-bs-toggle="modal" data-bs-target="#settingsModal" onclick="loadBotSettings()">
+                        <i class="fa-solid fa-qrcode me-1"></i> Abrir QR Code / Status
+                    </button>
+                </div>
+            </div>
+
+            <!-- STATUS TELEGRAM -->
+            <div class="col-md-3">
+                <div class="card-vps shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small fw-semibold"><i class="fa-paper-plane me-1 text-primary"></i> Telegram Status</span>
+                        <span id="tgStatusBadge" class="badge bg-primary">Ativo</span>
+                    </div>
+                    <div class="small fw-semibold text-light mt-1" id="tgStatusText">Canal Configurado</div>
+                    <div class="text-muted small mt-1" id="tgChatIdSub">@GMOfert</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- PAINEL DE CONFIGURAÇÕES DE AFILIADOS E RECEPTOR -->
+        <div class="accordion mb-4 shadow" id="affiliateAccordion">
+            <div class="accordion-item bg-custom-dark border-secondary">
+                <h2 class="accordion-header" id="headingAffiliates">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAffiliates" aria-expanded="false" aria-controls="collapseAffiliates">
+                        <i class="fa-solid fa-tags text-warning me-2"></i> Integrador de Afiliados (5 lojas) & Canais
+                    </button>
+                </h2>
+                <div id="collapseAffiliates" class="accordion-collapse collapse" aria-labelledby="headingAffiliates" data-bs-parent="#affiliateAccordion">
+                    <div class="accordion-body p-4">
+                        <form id="quickSettingsForm" class="row g-3">
+                            <div class="col-md-6">
+                                <label for="quickAmazonTag" class="form-label text-muted small fw-bold"><i class="fa-brands fa-amazon me-1 text-warning"></i> Amazon Tag de Afiliado:</label>
+                                <input type="text" id="quickAmazonTag" class="form-control bg-dark text-light border-secondary" placeholder="Ex: suatag-20">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quickMlLink" class="form-label text-muted small fw-bold"><i class="fa-solid fa-cart-shopping me-1 text-warning"></i> Mercado Livre Link Afiliado Base:</label>
+                                <input type="text" id="quickMlLink" class="form-control bg-dark text-light border-secondary" placeholder="Ex: https://mercadolivre.com.br/sec/...">
+                            </div>
+
+                            <!-- Lojas novas: o campo aceita tanto um link fixo de afiliado
+                                 quanto um modelo com {url}, que a plataforma troca pelo link
+                                 do produto (é o formato dos deeplinks de Awin/Shopee/Ali). -->
+                            <div class="col-md-4">
+                                <label for="quickShopeeLink" class="form-label text-muted small fw-bold"><i class="fa-solid fa-bag-shopping me-1" style="color: var(--accent-shopee)"></i> Shopee — link ou modelo:</label>
+                                <input type="text" id="quickShopeeLink" class="form-control bg-dark text-light border-secondary" placeholder="Ex: https://s.shopee.com.br/... ou modelo com {url}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="quickAliLink" class="form-label text-muted small fw-bold"><i class="fa-solid fa-globe me-1" style="color: var(--accent-ali)"></i> AliExpress — link ou modelo:</label>
+                                <input type="text" id="quickAliLink" class="form-control bg-dark text-light border-secondary" placeholder="Ex: https://s.click.aliexpress.com/... ou modelo com {url}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="quickKabumLink" class="form-label text-muted small fw-bold"><i class="fa-solid fa-microchip me-1 text-primary"></i> KaBuM! — link ou modelo:</label>
+                                <input type="text" id="quickKabumLink" class="form-control bg-dark text-light border-secondary" placeholder="Ex: https://www.awin1.com/cread.php?...&amp;ued={url}">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="quickWaGroup" class="form-label text-muted small fw-bold"><i class="fa-brands fa-whatsapp me-1 text-success"></i> ID do Grupo WhatsApp:</label>
+                                <input type="text" id="quickWaGroup" class="form-control bg-dark text-light border-secondary" placeholder="Ex: 120363406538141998@g.us">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quickTgChat" class="form-label text-muted small fw-bold"><i class="fa-paper-plane me-1 text-info"></i> ID do Canal / Grupo Telegram:</label>
+                                <input type="text" id="quickTgChat" class="form-control bg-dark text-light border-secondary" placeholder="Ex: @GMOfert">
+                            </div>
+
+                            <div class="col-12 text-end">
+                                <button type="submit" id="btnSaveQuick" class="btn btn-warning fw-bold px-4">
+                                    <i class="fa-solid fa-floppy-disk me-1"></i> Salvar Integradores
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORMULÁRIO DE BUSCA -->
+        <div class="card card-custom mb-4">
+            <div class="card-body p-4">
+                <form id="searchForm" class="row g-3 align-items-end">
+                    
+                    <div class="col-md-3">
+                        <label for="platformInput" class="form-label fw-bold">Plataforma:</label>
+                        <select id="platformInput" class="form-select bg-dark text-light border-secondary">
+                            <option value="both" selected>🛍️ Mercado Livre + Amazon</option>
+                            <option value="all">🌎 Todas as lojas</option>
+                            <option value="mercadolivre">🛒 Mercado Livre</option>
+                            <option value="amazon">📦 Amazon Brasil</option>
+                            <option value="shopee">🧡 Shopee</option>
+                            <option value="aliexpress">🌐 AliExpress</option>
+                            <option value="kabum">💙 KaBuM!</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="queryInput" class="form-label fw-bold">Termo de Busca:</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="queryInput" class="form-control bg-dark text-light border-secondary" placeholder="Ex: notebook i7, rtx 4060, monitor 144hz" value="notebook i7" required>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-1">
+                        <label for="pagesInput" class="form-label">Páginas:</label>
+                        <select id="pagesInput" class="form-select bg-dark text-light border-secondary">
+                            <option value="1" selected>1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label for="limitInput" class="form-label">Limite Itens:</label>
+                        <input type="number" id="limitInput" class="form-control bg-dark text-light border-secondary" value="30" min="4" max="200">
+                    </div>
+
+                    <div class="col-md-2">
+                        <button type="submit" id="btnSearch" class="btn btn-ml w-100 py-2">
+                            <i class="fa-solid fa-rocket me-2"></i> Pesquisar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- INDICADOR DE CARREGAMENTO -->
+        <div id="loadingSpinner" class="text-center py-5 d-none">
+            <div class="spinner-border text-warning mb-3" style="width: 3.5rem; height: 3.5rem;" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <h5 class="text-light" id="spinnerText">Coletando ofertas em tempo real via Playwright...</h5>
+            <p class="text-muted">Aguarde alguns segundos enquanto raspamos e comparamos os anúncios das plataformas.</p>
+        </div>
+
+        <!-- NOTIFICAÇÃO TOAST DE STATUS -->
+        <div id="alertNotification" class="alert alert-info d-none my-3 shadow alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-circle-info me-2"></i> <span id="notificationMessage"></span>
+            <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('alertNotification').classList.add('d-none')"></button>
+        </div>
+
+        <!-- ALERTA DE ERRO -->
+        <div id="alertError" class="alert alert-danger d-none my-3 shadow" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i> <span id="errorMessage"></span>
+        </div>
+
+        <!-- SEÇÃO DE RESULTADOS -->
+        <div id="resultsSection" class="d-none">
+
+            <!-- METRICAS DE PREÇO -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card card-vps p-3">
+                        <div class="text-muted small">Total Encontrado</div>
+                        <div class="h3 fw-bold text-light mb-0" id="statTotal">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-vps p-3">
+                        <div class="text-muted small">Menor Preço (Melhor Oferta)</div>
+                        <div class="h3 fw-bold text-success mb-0" id="statMenor">R$ 0,00</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-vps p-3">
+                        <div class="text-muted small">Preço Médio Comparativo</div>
+                        <div class="h3 fw-bold text-info mb-0" id="statMedio">R$ 0,00</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-vps p-3">
+                        <div class="text-muted small">Frete Grátis / Prime</div>
+                        <div class="h3 fw-bold text-warning mb-0" id="statFrete">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AÇÕES E FILTRO DE TABELA -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex gap-2 align-items-center">
+                    <div class="input-group style-search" style="max-width: 320px;">
+                        <span class="input-group-text bg-dark border-secondary text-muted"><i class="fa-solid fa-filter"></i></span>
+                        <input type="text" id="tableFilter" class="form-control bg-dark text-light border-secondary" placeholder="Filtrar por produto, marca ou cupom...">
+                    </div>
+
+                    <!-- BOTÃO DE POSTAGEM EM LOTE -->
+                    <button id="btnPublishBatch" class="btn btn-publish text-nowrap px-3" onclick="publishSelectedBatch()">
+                        <i class="fa-solid fa-paper-plane me-1"></i> Postar Selecionados (<span id="selectedCount">0</span>)
+                    </button>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button id="btnDownloadCsv" onclick="downloadExport('csv')" class="btn btn-outline-success">
+                        <i class="fa-solid fa-file-csv me-1"></i> Baixar CSV
+                    </button>
+                    <button id="btnDownloadJson" onclick="downloadExport('json')" class="btn btn-outline-info">
+                        <i class="fa-solid fa-file-code me-1"></i> Baixar JSON
+                    </button>
+                </div>
+            </div>
+
+            <!-- TABELA DINÂMICA DE PRODUTOS -->
+            <div class="table-responsive shadow">
+                <table class="table table-dark table-hover align-middle" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;" class="text-center">
+                                <input type="checkbox" id="selectAllCheckbox" class="form-check-input" onchange="toggleSelectAll(this)">
+                            </th>
+                            <th style="width: 60px;">Foto</th>
+                            <th style="width: 130px;">Plataforma</th>
+                            <th>Produto & Destaque</th>
+                            <th style="width: 130px;" class="text-end">Preço Atual</th>
+                            <th style="width: 150px;" class="text-center">Cupom Elegível</th>
+                            <th style="width: 130px;">Vendedor</th>
+                            <th style="width: 90px;" class="text-center">Frete</th>
+                            <th style="width: 190px;" class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Linhas geradas dinamicamente via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- POP-UP MODAL DE EDIÇÃO E PRÉVIA DO POST -->
+    <div class="modal fade" id="editPostModal" tabindex="-1" aria-labelledby="editPostModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content bg-custom-dark text-light border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title font-weight-bold" id="editPostModalLabel">
+                        <i class="fa-solid fa-pen-to-square text-warning me-2"></i> Editar Oferta Antes de Enviar
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editPostForm" class="row g-4">
+                        
+                        <!-- Lado Esquerdo: Campos de Edição -->
+                        <div class="col-lg-6">
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3 bg-dark border border-secondary rounded">
+                                <img id="postEditImg" src="" class="product-img" style="width: 75px; height: 75px;" alt="Prévia">
+                                <div class="overflow-hidden">
+                                    <span id="postEditPlatformBadge" class="badge badge-ml mb-1">M. Livre</span>
+                                    <h6 id="postEditTitleHead" class="mb-0 text-light text-truncate" style="max-width: 320px;">Título do Produto</h6>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">Título do Produto:</label>
+                                <input type="text" id="postEditTitle" class="form-control bg-dark text-light border-secondary" oninput="updateLiveCaption()">
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small fw-bold">Preço Atual (R$):</label>
+                                    <input type="text" id="postEditPrice" class="form-control bg-dark text-light border-secondary" oninput="updateLiveCaption()">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small fw-bold">Preço Original / De:</label>
+                                    <input type="text" id="postEditOriginalPrice" class="form-control bg-dark text-light border-secondary" placeholder="Ex: R$ 1.200,00" oninput="updateLiveCaption()">
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small fw-bold">Destaque / Badge:</label>
+                                    <input type="text" id="postEditDestaque" class="form-control bg-dark text-light border-secondary" placeholder="Ex: OFERTA IMPERDÍVEL" oninput="updateLiveCaption()">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small fw-bold">Cupom Elegível:</label>
+                                    <input type="text" id="postEditCoupon" class="form-control bg-dark text-light border-secondary" placeholder="Ex: CUPOM10" oninput="updateLiveCaption()">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">Link do Anúncio / Afiliado:</label>
+                                <input type="text" id="postEditLink" class="form-control bg-dark text-light border-secondary" oninput="updateLiveCaption()">
+                            </div>
+                        </div>
+
+                        <!-- Lado Direito: Prévia e Editor da Legenda -->
+                        <div class="col-lg-6">
+                            <label class="form-label text-muted small fw-bold"><i class="fa-solid fa-code me-1 text-info"></i> Legenda do Post (Formatada & Emojis):</label>
+                            <textarea id="postEditCaption" class="form-control bg-dark text-light border-secondary font-monospace" rows="12" style="font-size: 0.9rem; line-height: 1.5;"></textarea>
+
+                            <div class="card bg-dark border-secondary p-3 my-3">
+                                <h6 class="text-warning fw-bold small mb-2"><i class="fa-solid fa-share-nodes me-1"></i> Transmitir para os Canais:</h6>
+                                <div class="d-flex gap-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="postSendTelegram" checked>
+                                        <label class="form-check-label text-light fw-semibold" for="postSendTelegram">
+                                            <i class="fa-paper-plane text-info me-1"></i> Telegram
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="postSendWhatsApp" checked>
+                                        <label class="form-check-label text-light fw-semibold" for="postSendWhatsApp">
+                                            <i class="fa-brands fa-whatsapp text-success me-1"></i> WhatsApp
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-end">
+                                <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" id="btnConfirmPublishModal" class="btn btn-publish px-4 py-2">
+                                    <i class="fa-solid fa-paper-plane me-2"></i> Transmitir Oferta Agora
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL COMPLETO DE CONFIGURAÇÕES DO BOT E QR CODE WHATSAPP -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-custom-dark text-light border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title font-weight-bold" id="settingsModalLabel">
+                        <i class="fa-solid fa-sliders text-warning me-2"></i> Central de Integração & Conexões
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    
+                    <!-- CONEXÃO WHATSAPP E QR CODE -->
+                    <div class="card bg-dark border-secondary p-3 mb-4 text-center">
+                        <h6 class="text-warning fw-bold mb-2"><i class="fa-brands fa-whatsapp me-2"></i> Conexão WhatsApp Web (Baileys)</h6>
+                        <div id="waStatusArea">
+                            <span class="badge bg-secondary p-2">Verificando...</span>
+                        </div>
+                    </div>
+
+                    <!-- FORMULÁRIO COMPLETO -->
+                    <form id="fullSettingsForm">
+                        <h6 class="text-light fw-bold mb-3 border-bottom border-secondary pb-2">
+                            <i class="fa-solid fa-tags me-2 text-info"></i> Integração de Afiliados
+                        </h6>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="modalAmazonTag" class="form-label text-muted small">Amazon Affiliate Tag:</label>
+                                <input type="text" id="modalAmazonTag" class="form-control bg-dark text-light border-secondary" placeholder="Ex: suatag-20">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modalMlLink" class="form-label text-muted small">Mercado Livre Link Afiliado Base:</label>
+                                <input type="text" id="modalMlLink" class="form-control bg-dark text-light border-secondary" placeholder="Ex: https://mercadolivre.com.br/sec/...">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="modalShopeeLink" class="form-label text-muted small">Shopee — link ou modelo:</label>
+                                <input type="text" id="modalShopeeLink" class="form-control bg-dark text-light border-secondary" placeholder="https://s.shopee.com.br/... ou modelo com {url}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="modalAliLink" class="form-label text-muted small">AliExpress — link ou modelo:</label>
+                                <input type="text" id="modalAliLink" class="form-control bg-dark text-light border-secondary" placeholder="https://s.click.aliexpress.com/... ou modelo com {url}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="modalKabumLink" class="form-label text-muted small">KaBuM! — link ou modelo:</label>
+                                <input type="text" id="modalKabumLink" class="form-control bg-dark text-light border-secondary" placeholder="https://www.awin1.com/cread.php?...&amp;ued={url}">
+                            </div>
+                            <div class="col-12">
+                                <div class="alert alert-dark border-secondary small mb-0 py-2">
+                                    <i class="fa-solid fa-circle-info me-1 text-info"></i>
+                                    Deixe em branco para publicar o link direto da loja. Com
+                                    <code>{url}</code> no meio, o endereço do produto entra no lugar
+                                    (deeplink); sem <code>{url}</code>, o link salvo substitui o do produto.
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="text-light fw-bold mb-3 border-bottom border-secondary pb-2">
+                            <i class="fa-solid fa-key me-2 text-warning"></i> Shopee — API de Afiliados
+                        </h6>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-12">
+                                <div class="alert alert-dark border-secondary small mb-0 py-2">
+                                    <i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i>
+                                    A Shopee bloqueia a busca comum vinda de rede que não pareça
+                                    residencial. Com estas chaves o portal usa a API oficial, que
+                                    funciona de qualquer rede e já devolve o link afiliado pronto —
+                                    aí o campo de link/modelo acima fica desnecessário para a Shopee.
+                                    As chaves saem em <strong>affiliate.shopee.com.br &gt; Open API</strong>.
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modalShopeeAppId" class="form-label text-muted small">Shopee App ID:</label>
+                                <input type="text" id="modalShopeeAppId" class="form-control bg-dark text-light border-secondary" placeholder="Ex: 15364800123">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modalShopeeAppSecret" class="form-label text-muted small">Shopee App Secret:</label>
+                                <input type="password" id="modalShopeeAppSecret" class="form-control bg-dark text-light border-secondary" placeholder="Chave secreta da Open API">
+                            </div>
+                        </div>
+
+                        <h6 class="text-light fw-bold mb-3 border-bottom border-secondary pb-2">
+                            <i class="fa-solid fa-paper-plane me-2 text-success"></i> Canais e Tokens de Transmissão
+                        </h6>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="modalWaGroup" class="form-label text-muted small">ID do Grupo WhatsApp:</label>
+                                <input type="text" id="modalWaGroup" class="form-control bg-dark text-light border-secondary" placeholder="Ex: 120363406538141998@g.us">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modalTgChat" class="form-label text-muted small">Canal / Chat ID Telegram:</label>
+                                <input type="text" id="modalTgChat" class="form-control bg-dark text-light border-secondary" placeholder="Ex: @GMOfert">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="modalTgToken" class="form-label text-muted small">Telegram Bot Token:</label>
+                                <input type="password" id="modalTgToken" class="form-control bg-dark text-light border-secondary" placeholder="Token do Telegram Bot API">
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" id="btnSaveFull" class="btn btn-warning fw-bold px-4">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> Salvar Todas as Configurações
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let currentResultsData = [];
+        let activeEditItem = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMetricsAndStatus();
+            setInterval(fetchMetricsAndStatus, 3000);
+            loadBotSettings();
+        });
+
+        // Atualização contínua das métricas de CPU, RAM e Status dos Canais
+        async function fetchMetricsAndStatus() {
+            try {
+                const res = await fetch('/api/bot-status');
+                const data = await res.json();
+
+                const cpuVal = parseFloat(data.cpuPercent || 0);
+                const cpuBadge = document.getElementById('vpsCpuBadge');
+                const cpuBar = document.getElementById('vpsCpuBar');
+                cpuBadge.textContent = `${cpuVal.toFixed(1)}%`;
+                cpuBar.style.width = `${Math.min(cpuVal, 100)}%`;
+
+                if (cpuVal > 80) {
+                    cpuBadge.className = 'badge bg-danger text-light fw-bold';
+                    cpuBar.className = 'progress-bar bg-danger';
+                    document.getElementById('vpsCpuSub').textContent = '⚠️ Alta carga na VPS';
+                } else if (cpuVal > 50) {
+                    cpuBadge.className = 'badge bg-warning text-dark fw-bold';
+                    cpuBar.className = 'progress-bar bg-warning';
+                    document.getElementById('vpsCpuSub').textContent = 'Uso moderado';
+                } else {
+                    cpuBadge.className = 'badge bg-info bg-opacity-20 text-info fw-bold';
+                    cpuBar.className = 'progress-bar bg-info';
+                    document.getElementById('vpsCpuSub').textContent = 'Processamento normal';
+                }
+
+                const ramVal = parseFloat(data.memPercent || 0);
+                const ramBadge = document.getElementById('vpsRamBadge');
+                const ramBar = document.getElementById('vpsRamBar');
+                ramBadge.textContent = `${ramVal.toFixed(1)}%`;
+                ramBar.style.width = `${Math.min(ramVal, 100)}%`;
+                document.getElementById('vpsRamSub').textContent = `App Mem: ${data.appMemMB || '0'} MB`;
+
+                const waBadge = document.getElementById('waStatusBadge');
+                const waText = document.getElementById('waStatusText');
+                if (data.online && data.waConnected) {
+                    waBadge.className = 'badge bg-success';
+                    waBadge.textContent = 'Ativo 🟢';
+                    waText.textContent = 'WhatsApp Conectado';
+                } else if (data.online) {
+                    waBadge.className = 'badge bg-warning text-dark';
+                    waBadge.textContent = 'Pendente 🟡';
+                    waText.textContent = 'Escaneie o QR Code';
+                } else {
+                    waBadge.className = 'badge bg-danger';
+                    waBadge.textContent = 'Offline 🔴';
+                    waText.textContent = 'Bot Desconectado';
+                }
+
+                const tgBadge = document.getElementById('tgStatusBadge');
+                const tgText = document.getElementById('tgStatusText');
+                if (data.online) {
+                    tgBadge.className = 'badge bg-primary';
+                    tgBadge.textContent = 'Ativo 🟢';
+                    tgText.textContent = 'Transmissão Pronta';
+                } else {
+                    tgBadge.className = 'badge bg-danger';
+                    tgBadge.textContent = 'Offline 🔴';
+                    tgText.textContent = 'Bot Offline';
+                }
+
+            } catch (err) {
+                console.error("Erro ao atualizar métricas:", err);
+            }
+        }
+
+        async function loadBotSettings() {
+            const waArea = document.getElementById('waStatusArea');
+            try {
+                const resStatus = await fetch('/api/bot-status');
+                const statusData = await resStatus.json();
+
+                if (statusData.online) {
+                    if (statusData.waConnected) {
+                        waArea.innerHTML = `<div class="text-success fw-bold p-2"><i class="fa-solid fa-circle-check me-2"></i> WhatsApp Conectado e Operacional!</div>`;
+                    } else if (statusData.waQrUrl) {
+                        waArea.innerHTML = `
+                            <p class="text-light small mb-2">Abra o WhatsApp no celular > Dispositivos Conectados e escaneie:</p>
+                            <div class="qr-container my-2">
+                                <img src="${statusData.waQrUrl}" width="220" alt="QR Code WhatsApp">
+                            </div>
+                        `;
+                    } else {
+                        waArea.innerHTML = `<div class="text-warning small p-2"><i class="fa-solid fa-spinner fa-spin me-2"></i> Gerando QR Code... Aguarde alguns segundos.</div>`;
+                    }
+                } else {
+                    waArea.innerHTML = `<div class="text-danger small p-2"><i class="fa-solid fa-circle-xmark me-2"></i> O servidor do Bot Node.js não está rodando.</div>`;
+                }
+
+                const resConfig = await fetch('/api/bot-settings');
+                const configData = await resConfig.json();
+
+                if (configData.success && configData.settings) {
+                    const s = configData.settings;
+                    document.getElementById('modalAmazonTag').value = s.amazonTag || '';
+                    document.getElementById('modalMlLink').value = s.mlAffiliateLink || '';
+                    document.getElementById('modalShopeeLink').value = s.shopeeAffiliateTemplate || '';
+                    document.getElementById('modalAliLink').value = s.aliAffiliateTemplate || '';
+                    document.getElementById('modalKabumLink').value = s.kabumAffiliateTemplate || '';
+                    document.getElementById('modalShopeeAppId').value = s.shopeeAppKey || '';
+                    document.getElementById('modalShopeeAppSecret').value = s.shopeeAppSecret || '';
+                    document.getElementById('modalWaGroup').value = s.whatsappGroupId || '';
+                    document.getElementById('modalTgChat').value = s.telegramChatId || '';
+                    document.getElementById('modalTgToken').value = s.telegramBotToken || '';
+
+                    document.getElementById('quickAmazonTag').value = s.amazonTag || '';
+                    document.getElementById('quickMlLink').value = s.mlAffiliateLink || '';
+                    document.getElementById('quickShopeeLink').value = s.shopeeAffiliateTemplate || '';
+                    document.getElementById('quickAliLink').value = s.aliAffiliateTemplate || '';
+                    document.getElementById('quickKabumLink').value = s.kabumAffiliateTemplate || '';
+                    document.getElementById('quickWaGroup').value = s.whatsappGroupId || '';
+                    document.getElementById('quickTgChat').value = s.telegramChatId || '';
+
+                    if (s.telegramChatId) {
+                        document.getElementById('tgChatIdSub').textContent = s.telegramChatId;
+                    }
+                }
+            } catch (err) {
+                console.error("Erro ao carregar configurações:", err);
+            }
+        }
+
+        // Identidade visual de cada loja num lugar só. Antes a tabela e o modal
+        // de publicação tinham cada um o seu "isAmazon ? ... : ...", e incluir
+        // uma loja significava caçar todos esses ternários pelo arquivo.
+        const LOJAS = {
+            mercadolivre: { rotulo: 'M. Livre',   nomeCompleto: 'Mercado Livre', badge: 'badge-ml',     icone: 'fa-solid fa-cart-shopping',  botao: 'btn-warning' },
+            amazon:       { rotulo: 'Amazon',     nomeCompleto: 'Amazon Brasil', badge: 'badge-amazon', icone: 'fa-brands fa-amazon',        botao: 'btn-outline-warning' },
+            shopee:       { rotulo: 'Shopee',     nomeCompleto: 'Shopee',        badge: 'badge-shopee', icone: 'fa-solid fa-bag-shopping',   botao: 'btn-outline-danger' },
+            aliexpress:   { rotulo: 'AliExpress', nomeCompleto: 'AliExpress',    badge: 'badge-ali',    icone: 'fa-solid fa-globe',          botao: 'btn-outline-danger' },
+            kabum:        { rotulo: 'KaBuM!',     nomeCompleto: 'KaBuM!',        badge: 'badge-kabum',  icone: 'fa-solid fa-microchip',      botao: 'btn-outline-primary' }
+        };
+
+        function identificarLoja(plataforma) {
+            const texto = (plataforma || '').toLowerCase();
+            if (texto.includes('amazon')) return LOJAS.amazon;
+            if (texto.includes('shopee')) return LOJAS.shopee;
+            if (texto.includes('ali')) return LOJAS.aliexpress;
+            if (texto.includes('kabum')) return LOJAS.kabum;
+            return LOJAS.mercadolivre;
+        }
+
+        // ABRIR POP-UP MODAL DE EDIÇÃO DO POST
+        function openEditPostModal(index) {
+            const item = currentResultsData[index];
+            if (!item) return;
+
+            activeEditItem = { ...item };
+
+            const loja = identificarLoja(item.plataforma);
+            const platformBadge = document.getElementById('postEditPlatformBadge');
+            platformBadge.className = `badge ${loja.badge} mb-1`;
+            platformBadge.textContent = loja.nomeCompleto;
+
+            document.getElementById('postEditImg').src = item.imagem_url || '';
+            document.getElementById('postEditTitleHead').textContent = item.titulo || 'Produto';
+
+            document.getElementById('postEditTitle').value = item.titulo || '';
+            document.getElementById('postEditPrice').value = item.preco ? `R$ ${item.preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : '';
+            document.getElementById('postEditOriginalPrice').value = item.preco_original ? `R$ ${item.preco_original.toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : '';
+            document.getElementById('postEditDestaque').value = item.destaque || 'OFERTA IMPERDÍVEL';
+            document.getElementById('postEditCoupon').value = item.cupom || '';
+            document.getElementById('postEditLink').value = item.link || '';
+
+            updateLiveCaption();
+
+            const modalElem = document.getElementById('editPostModal');
+            const modal = new bootstrap.Modal(modalElem);
+            modal.show();
+        }
+
+        // GERAR LEGENDA FORMATADA EM TEMPO REAL
+        function updateLiveCaption() {
+            const title = document.getElementById('postEditTitle').value;
+            const price = document.getElementById('postEditPrice').value;
+            const origPrice = document.getElementById('postEditOriginalPrice').value;
+            const destaque = document.getElementById('postEditDestaque').value;
+            const coupon = document.getElementById('postEditCoupon').value;
+            const link = document.getElementById('postEditLink').value;
+
+            let priceText = `💸 <b>Por apenas: ${price || 'Confira'}</b>`;
+            if (origPrice && origPrice !== price) {
+                priceText = `📉 <b>BAIXOU DE PREÇO!</b>\n❌ De: <s>${origPrice}</s>\n✅ <b>Por: ${price}</b>`;
+            }
+
+            let destaqueText = destaque ? `🔥 <b>${destaque.toUpperCase()}!</b>\n\n` : `🔥 <b>OFERTA IMPERDÍVEL!</b>\n\n`;
+            let couponText = coupon ? `\n🎟️ <b>Use o Cupom:</b> <code>${coupon}</code>\n` : '';
+
+            const caption = `${destaqueText}📦 ${title}\n\n${priceText}\n${couponText}\n🛒 <b>Compre aqui:</b> <a href="${link}">Link do Desconto</a>`;
+
+            document.getElementById('postEditCaption').value = caption;
+        }
+
+        // TRANSMITIR POST EDITADO VIA MODAL
+        document.getElementById('editPostForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('btnConfirmPublishModal');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Enviando...`;
+
+            try {
+                const payload = {
+                    titulo: document.getElementById('postEditTitle').value,
+                    preco: document.getElementById('postEditPrice').value,
+                    preco_original: document.getElementById('postEditOriginalPrice').value,
+                    destaque: document.getElementById('postEditDestaque').value,
+                    cupom: document.getElementById('postEditCoupon').value,
+                    link: document.getElementById('postEditLink').value,
+                    imagem_url: document.getElementById('postEditImg').src,
+                    plataforma: activeEditItem ? activeEditItem.plataforma : 'Mercado Livre',
+                    caption: document.getElementById('postEditCaption').value,
+                    sendTelegram: document.getElementById('postSendTelegram').checked,
+                    sendWhatsApp: document.getElementById('postSendWhatsApp').checked
+                };
+
+                const res = await fetch('/api/publish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                const notif = document.getElementById('alertNotification');
+                const notifMsg = document.getElementById('notificationMessage');
+
+                if (data.success) {
+                    notif.className = "alert alert-success shadow alert-dismissible fade show my-3";
+                    notifMsg.textContent = `✨ Oferta publicada com sucesso! (${data.message})`;
+                    const modalElem = document.getElementById('editPostModal');
+                    const modal = bootstrap.Modal.getInstance(modalElem);
+                    if (modal) modal.hide();
+                } else {
+                    alert('⚠️ AVISO ao enviar: ' + (data.error || data.message));
+                }
+                notif.classList.remove('d-none');
+
+            } catch (err) {
+                alert('Erro ao enviar postagem: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        });
+
+        // Salvar via painel rápido
+        document.getElementById('quickSettingsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSaveQuick');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Salvando...`;
+
+            try {
+                const amazonTag = document.getElementById('quickAmazonTag').value;
+                const mlAffiliateLink = document.getElementById('quickMlLink').value;
+                const shopeeAffiliateTemplate = document.getElementById('quickShopeeLink').value;
+                const aliAffiliateTemplate = document.getElementById('quickAliLink').value;
+                const kabumAffiliateTemplate = document.getElementById('quickKabumLink').value;
+                const whatsappGroupId = document.getElementById('quickWaGroup').value;
+                const telegramChatId = document.getElementById('quickTgChat').value;
+
+                const res = await fetch('/api/bot-settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amazonTag, mlAffiliateLink,
+                        shopeeAffiliateTemplate, aliAffiliateTemplate, kabumAffiliateTemplate,
+                        whatsappGroupId, telegramChatId
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    alert('✨ Integração de Afiliados atualizada com sucesso!');
+                    loadBotSettings();
+                } else {
+                    alert('Erro ao salvar: ' + (data.error || 'Falha'));
+                }
+            } catch (err) {
+                alert('Erro na conexão: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        });
+
+        // Salvar via modal completo
+        document.getElementById('fullSettingsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSaveFull');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Salvando...`;
+
+            try {
+                const amazonTag = document.getElementById('modalAmazonTag').value;
+                const mlAffiliateLink = document.getElementById('modalMlLink').value;
+                const shopeeAffiliateTemplate = document.getElementById('modalShopeeLink').value;
+                const aliAffiliateTemplate = document.getElementById('modalAliLink').value;
+                const kabumAffiliateTemplate = document.getElementById('modalKabumLink').value;
+                const shopeeAppKey = document.getElementById('modalShopeeAppId').value;
+                const shopeeAppSecret = document.getElementById('modalShopeeAppSecret').value;
+                const whatsappGroupId = document.getElementById('modalWaGroup').value;
+                const telegramChatId = document.getElementById('modalTgChat').value;
+                const telegramBotToken = document.getElementById('modalTgToken').value;
+
+                const res = await fetch('/api/bot-settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amazonTag, mlAffiliateLink,
+                        shopeeAffiliateTemplate, aliAffiliateTemplate, kabumAffiliateTemplate,
+                        shopeeAppKey, shopeeAppSecret,
+                        whatsappGroupId, telegramChatId, telegramBotToken
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    alert('✨ Todas as configurações e tokens foram salvos!');
+                    const modalElem = document.getElementById('settingsModal');
+                    const modal = bootstrap.Modal.getInstance(modalElem);
+                    if (modal) modal.hide();
+                    loadBotSettings();
+                } else {
+                    alert('Erro ao salvar: ' + (data.error || 'Falha'));
+                }
+            } catch (err) {
+                alert('Erro na conexão: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        });
+
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const query = document.getElementById('queryInput').value;
+            const pages = document.getElementById('pagesInput').value;
+            const limit = document.getElementById('limitInput').value;
+            const platform = document.getElementById('platformInput').value;
+
+            const btnSearch = document.getElementById('btnSearch');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const spinnerText = document.getElementById('spinnerText');
+            const resultsSection = document.getElementById('resultsSection');
+            const alertError = document.getElementById('alertError');
+            const alertNotification = document.getElementById('alertNotification');
+
+            btnSearch.disabled = true;
+            btnSearch.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Pesquisando...`;
+            
+            // O texto sai do próprio <option> escolhido: uma loja nova no
+            // seletor já aparece aqui sem precisar de mais um if.
+            const nomeDaBusca = document.getElementById('platformInput').selectedOptions[0].textContent.trim();
+            spinnerText.textContent = `Coletando ofertas em ${nomeDaBusca}...`;
+
+            loadingSpinner.classList.remove('d-none');
+            resultsSection.classList.add('d-none');
+            alertError.classList.add('d-none');
+            alertNotification.classList.add('d-none');
+
+            try {
+                const response = await fetch('/api/scrape', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, pages: parseInt(pages), limit: parseInt(limit), platform })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Falha ao realizar busca.');
+                }
+
+                currentResultsData = result.data || [];
+
+                // Busca vazia agora explica o motivo (CAPTCHA, timeout, seletor
+                // desatualizado) em vez de só mostrar "0 produtos".
+                if (currentResultsData.length === 0) {
+                    const motivo = (result.warnings && result.warnings.length)
+                        ? result.warnings.join(' | ')
+                        : 'Nenhum produto encontrado para este termo.';
+                    throw new Error(motivo);
+                }
+
+                if (result.warnings && result.warnings.length) {
+                    console.warn('Avisos da raspagem:', result.warnings);
+                }
+
+                renderResults(result);
+
+            } catch (err) {
+                document.getElementById('errorMessage').textContent = err.message;
+                alertError.classList.remove('d-none');
+            } finally {
+                btnSearch.disabled = false;
+                btnSearch.innerHTML = `<i class="fa-solid fa-rocket me-2"></i> Pesquisar`;
+                loadingSpinner.classList.add('d-none');
+            }
+        });
+
+        function renderResults(res) {
+            const data = res.data || [];
+            const stats = res.stats || {};
+
+            document.getElementById('statTotal').textContent = stats.total;
+            document.getElementById('statMenor').textContent = `R$ ${stats.menor_preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('statMedio').textContent = `R$ ${stats.preco_medio.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('statFrete').textContent = `${stats.pct_frete_gratis}%`;
+
+            if (res.csv_file) {
+                document.getElementById('btnDownloadCsv').href = `/download/${res.csv_file}`;
+                document.getElementById('btnDownloadCsv').classList.remove('disabled');
+            }
+            if (res.json_file) {
+                document.getElementById('btnDownloadJson').href = `/download/${res.json_file}`;
+                document.getElementById('btnDownloadJson').classList.remove('disabled');
+            }
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            document.getElementById('selectAllCheckbox').checked = false;
+            updateSelectedCount();
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">Nenhum produto encontrado para o termo pesquisado.</td></tr>`;
+            } else {
+                data.forEach((item, index) => {
+                    const priceFormatted = item.preco ? `R$ ${item.preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'N/I';
+                    const originalPriceFormatted = item.preco_original ? `R$ ${item.preco_original.toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : '';
+                    
+                    const imgTag = item.imagem_url 
+                        ? `<img src="${item.imagem_url}" class="product-img" alt="Produto">` 
+                        : `<div class="product-img d-flex align-items-center justify-content-center bg-dark text-muted"><i class="fa-solid fa-image"></i></div>`;
+
+                    const loja = identificarLoja(item.plataforma);
+                    const platformBadge = `<span class="badge ${loja.badge} px-2 py-1"><i class="${loja.icone} me-1"></i> ${loja.rotulo}</span>`;
+
+                    const shippingBadge = item.frete_gratis 
+                        ? `<span class="badge badge-shipping"><i class="fa-solid fa-truck-fast me-1"></i> Grátis</span>`
+                        : `<span class="badge bg-secondary bg-opacity-50 text-muted">Pago</span>`;
+
+                    const sellerName = item.vendedor || loja.nomeCompleto;
+                    
+                    const destaqueBadge = item.destaque 
+                        ? `<span class="badge badge-destaque mb-1 d-inline-block"><i class="fa-solid fa-fire me-1 text-danger"></i> ${item.destaque.toUpperCase()}</span><br>`
+                        : '';
+
+                    const couponBadge = item.cupom 
+                        ? `<span class="badge badge-coupon px-2 py-1"><i class="fa-solid fa-ticket me-1"></i> ${item.cupom}</span>`
+                        : `<span class="text-muted small">-</span>`;
+
+                    const buttonClass = loja.botao;
+                    const buttonIcon = loja.icone;
+
+                    const linkButton = item.link 
+                        ? `<a href="${item.link}" target="_blank" rel="noopener" class="btn btn-sm ${buttonClass} fw-semibold text-nowrap" title="Abrir anúncio"><i class="${buttonIcon}"></i></a>`
+                        : `<span class="text-muted small">-</span>`;
+
+                    const postButton = `<button class="btn btn-sm btn-publish fw-bold text-nowrap ms-1" onclick="openEditPostModal(${index})" title="Editar & Transmitir Oferta"><i class="fa-solid fa-pen-to-square me-1"></i> Postar</button>`;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="text-center">
+                            <input type="checkbox" class="form-check-input deal-checkbox" data-index="${index}" onchange="updateSelectedCount()">
+                        </td>
+                        <td>${imgTag}</td>
+                        <td>${platformBadge}</td>
+                        <td>
+                            ${destaqueBadge}
+                            <a href="${item.link || '#'}" target="_blank" class="text-light fw-medium text-decoration-none hover-warning">
+                                ${item.titulo}
+                            </a>
+                            <div class="small text-muted mt-1"><i class="fa-solid fa-tag me-1"></i> Condição: ${item.condicao || 'Novo'}</div>
+                        </td>
+                        <td class="text-end">
+                            <div class="price-tag">${priceFormatted}</div>
+                            ${originalPriceFormatted ? `<div class="text-decoration-line-through text-muted small">${originalPriceFormatted}</div>` : ''}
+                        </td>
+                        <td class="text-center">${couponBadge}</td>
+                        <td><span class="badge bg-dark border border-secondary text-info"><i class="fa-solid fa-store me-1"></i> ${sellerName}</span></td>
+                        <td class="text-center">${shippingBadge}</td>
+                        <td class="text-center d-flex align-items-center justify-content-center gap-1">
+                            ${linkButton}
+                            ${postButton}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('resultsSection').classList.remove('d-none');
+        }
+
+        function toggleSelectAll(masterCheckbox) {
+            const checkboxes = document.querySelectorAll('.deal-checkbox');
+            checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const selected = document.querySelectorAll('.deal-checkbox:checked');
+            document.getElementById('selectedCount').textContent = selected.length;
+        }
+
+        async function publishSelectedBatch() {
+            const selectedBoxes = document.querySelectorAll('.deal-checkbox:checked');
+            if (selectedBoxes.length === 0) {
+                alert('Selecione pelo menos uma oferta na tabela para publicar!');
+                return;
+            }
+
+            const selectedItems = [];
+            selectedBoxes.forEach(cb => {
+                const idx = parseInt(cb.getAttribute('data-index'));
+                if (currentResultsData[idx]) {
+                    selectedItems.push(currentResultsData[idx]);
+                }
+            });
+
+            const btn = document.getElementById('btnPublishBatch');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Enviando ${selectedItems.length}...`;
+
+            try {
+                const res = await fetch('/api/publish-batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ products: selectedItems })
+                });
+
+                const data = await res.json();
+
+                const notif = document.getElementById('alertNotification');
+                const notifMsg = document.getElementById('notificationMessage');
+
+                if (data.success) {
+                    notif.className = "alert alert-success shadow alert-dismissible fade show my-3";
+                    notifMsg.textContent = `✨ ${data.message}`;
+                } else {
+                    notif.className = "alert alert-warning shadow alert-dismissible fade show my-3";
+                    notifMsg.textContent = `⚠️ Aviso: ${data.message || data.error}`;
+                }
+                notif.classList.remove('d-none');
+
+            } catch (err) {
+                alert('Erro ao publicar em lote: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+
+        async function downloadExport(format) {
+            if (!currentResultsData || currentResultsData.length === 0) {
+                alert('Nenhum produto na tabela para baixar!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/export/${format}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ products: currentResultsData })
+                });
+
+                if (!response.ok) throw new Error('Falha ao gerar arquivo.');
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `produtos_exportados.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('Erro ao baixar exportação: ' + err.message);
+            }
+        }
+
+        document.getElementById('tableFilter').addEventListener('keyup', function() {
+            const filterValue = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#tableBody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filterValue) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

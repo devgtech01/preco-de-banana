@@ -1,0 +1,9 @@
+# A versão do playwright precisa bater com a tag da imagem base do Dockerfile
+# (mcr.microsoft.com/playwright/python:v1.50.0-noble).
+playwright==1.50.0
+pandas>=2.0.0
+rich>=13.0.0
+flask>=3.0.0
+requests>=2.30.0
+python-dotenv>=1.0.0
+gunicorn>=22.0.0

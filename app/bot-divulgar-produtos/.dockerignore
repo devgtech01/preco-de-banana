@@ -1,0 +1,19 @@
+# Nunca embutir segredos nem estado na imagem.
+# Sem este arquivo, o `COPY . .` levava o .env (com o token do Telegram) e o
+# settings.db local para dentro da imagem — e o banco de produção era
+# sobrescrito pelo de desenvolvimento a cada build.
+.env
+.env.*
+!.env.example
+settings.db
+data/
+auth_info_baileys/
+
+node_modules/
+npm-debug.log*
+*.log
+
+.git/
+.gitignore
+Dockerfile
+.dockerignore

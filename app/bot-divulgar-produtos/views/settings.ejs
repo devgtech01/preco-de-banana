@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - Meu Divulga Ninja</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; }
+        .sidebar { height: 100vh; background-color: #010409; color: white; padding-top: 20px; border-right: 1px solid #30363d;}
+        .sidebar .nav-link { color: rgba(255,255,255,.75); padding: 12px 20px; font-weight: 500;}
+        .sidebar .nav-link.active, .sidebar .nav-link:hover { color: white; background-color: #21262d; border-radius: 5px; }
+        .main-content { padding: 40px; }
+        /* Style dos Cards de Loja */
+        .store-card { background-color: #161b22; border: 1px solid #30363d; border-radius: 12px; text-align: center; padding: 25px 20px; transition: transform 0.2s;}
+        .store-card:hover { border-color: #8b949e; }
+        .store-logo { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; margin-bottom: 15px; background: white; padding: 5px;}
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 20px; font-weight: 600;}
+        .status-pendente { background-color: rgba(210, 153, 34, 0.15); color: #d29922; border: 1px solid rgba(210, 153, 34, 0.4);}
+        .status-pronto { background-color: rgba(46, 160, 67, 0.15); color: #2ea043; border: 1px solid rgba(46, 160, 67, 0.4);}
+        .btn-config { background-color: #21262d; border: 1px solid #30363d; color: #c9d1d9; width: 100%; font-weight: 600; padding: 8px;}
+        .btn-config:hover { background-color: #30363d; color: white;}
+        /* Modais */
+        .modal-content { background-color: #161b22; border: 1px solid #30363d; color: #c9d1d9;}
+        .modal-header { border-bottom: 1px solid #30363d; }
+        .modal-footer { border-top: 1px solid #30363d; }
+        .form-control { background-color: #010409; border: 1px solid #30363d; color: white; }
+        .form-control:focus { background-color: #010409; color: white; border-color: #58a6ff; box-shadow: 0 0 0 0.25rem rgba(88, 166, 255, 0.25);}
+        .form-label { font-weight: 500; font-size: 14px; }
+        .text-muted { color: #8b949e !important; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="position-sticky">
+                <h4 class="text-center mb-4 text-white fw-bold">
+                    <i class="bi bi-robot text-primary"></i> MeuDivulga
+                </h4>
+                <ul class="nav flex-column gap-1">
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-megaphone me-2"></i> Gerar Promoção</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/settings"><i class="bi bi-globe me-2"></i> Minhas Afiliações</a></li>
+                    <li class="nav-item mt-4 border-top border-secondary pt-2"><a class="nav-link text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i> Sair do Painel</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+            <div class="mb-5">
+                <h2 class="fw-bold text-white">Minhas Afiliações</h2>
+                <p class="text-muted">Conecte suas plataformas e em seguida vá em "Gerar Promoção" para automatizar seus links.</p>
+            </div>
+
+            <!-- Alertas -->
+            <% if (success) { %>
+                <div class="alert alert-success bg-success bg-opacity-10 border-success text-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> <%= success %>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
+
+            <!-- Grid de Placaformas -->
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4">
+                
+                <!-- AliExpress -->
+                <div class="col">
+                    <div class="store-card">
+                        <img src="https://logospng.org/download/aliexpress/logo-aliexpress-icon-1024.png" class="store-logo" alt="AliExpress">
+                        <h5 class="fw-bold mb-1 text-white">AliExpress</h5>
+                        <div class="text-muted small mb-2">5 campo(s) configuráveis</div>
+                        <% if(settings.aliAffiliateTemplate || (settings.aliApiKey && settings.aliApiSecret && settings.aliTrackingId)) { %>
+                            <div class="status-badge status-pronto">Pronto</div>
+                        <% } else { %>
+                            <div class="status-badge status-pendente">Pendente</div>
+                        <% } %>
+                        <button class="btn btn-config" data-bs-toggle="modal" data-bs-target="#modalAli"><i class="bi bi-gear me-2"></i> Configurar</button>
+                    </div>
+                </div>
+
+                <!-- Amazon -->
+                <div class="col">
+                    <div class="store-card">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/de/Amazon_icon.png" class="store-logo" alt="Amazon">
+                        <h5 class="fw-bold mb-1 text-white">Amazon</h5>
+                        <div class="text-muted small mb-2">1 campo(s) configuráveis</div>
+                        <% if(settings.amazonTag) { %>
+                            <div class="status-badge status-pronto">Pronto</div>
+                        <% } else { %>
+                            <div class="status-badge status-pendente">Pendente</div>
+                        <% } %>
+                        <button class="btn btn-config" data-bs-toggle="modal" data-bs-target="#modalAmazon"><i class="bi bi-gear me-2"></i> Configurar</button>
+                    </div>
+                </div>
+
+                <!-- Mercado Livre -->
+                <div class="col">
+                    <div class="store-card">
+                        <img src="https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/5.21.22/mercadolibre/logo__small@2x.png" class="store-logo bg-warning" alt="Mercado Livre">
+                        <h5 class="fw-bold mb-1 text-white">Mercado Livre</h5>
+                        <div class="text-muted small mb-2">1 campo(s) configuráveis</div>
+                        <% if(settings.mlAffiliateLink) { %>
+                            <div class="status-badge status-pronto">Pronto</div>
+                        <% } else { %>
+                            <div class="status-badge status-pendente">Pendente</div>
+                        <% } %>
+                        <button class="btn btn-config" data-bs-toggle="modal" data-bs-target="#modalML"><i class="bi bi-gear me-2"></i> Configurar</button>
+                    </div>
+                </div>
+
+                <!-- Shopee -->
+                <div class="col">
+                    <div class="store-card">
+                        <img src="https://logospng.org/download/shopee/logo-shopee-icon-1024.png" class="store-logo" alt="Shopee">
+                        <h5 class="fw-bold mb-1 text-white">Shopee</h5>
+                        <div class="text-muted small mb-2">4 campo(s) configuráveis</div>
+                        <% if(settings.shopeeAffiliateTemplate || (settings.shopeeAppKey && settings.shopeeAppSecret)) { %>
+                            <div class="status-badge status-pronto">Pronto</div>
+                        <% } else { %>
+                            <div class="status-badge status-pendente">Pendente</div>
+                        <% } %>
+                        <button class="btn btn-config" data-bs-toggle="modal" data-bs-target="#modalShopee"><i class="bi bi-gear me-2"></i> Configurar</button>
+                    </div>
+                </div>
+
+                <!-- KaBuM! -->
+                <div class="col">
+                    <div class="store-card" style="border-bottom: 3px solid #0b2ea1;">
+                        <div class="store-logo d-flex align-items-center justify-content-center" style="background:#0b2ea1; color:#fff; font-weight:800; font-size:20px;">KB</div>
+                        <h5 class="fw-bold mb-1 text-white">KaBuM!</h5>
+                        <div class="text-muted small mb-2">2 campo(s) configuráveis</div>
+                        <% if(settings.kabumAffiliateTemplate) { %>
+                            <div class="status-badge status-pronto">Pronto</div>
+                        <% } else { %>
+                            <div class="status-badge status-pendente">Pendente</div>
+                        <% } %>
+                        <button class="btn btn-config" data-bs-toggle="modal" data-bs-target="#modalKabum"><i class="bi bi-gear me-2"></i> Configurar</button>
+                    </div>
+                </div>
+
+                <!-- Magalu -->
+                <div class="col">
+                    <div class="store-card" style="border-bottom: 3px solid #0086ff;">
+                        <img src="https://logodownload.org/wp-content/uploads/2014/10/magalu-logo-0.png" class="store-logo bg-white" alt="Magalu">
+                        <h5 class="fw-bold mb-1 text-white">Magalu</h5>
+                        <div class="text-muted small mb-2">1 campo(s) configuráveis</div>
+                        <% if(settings.magaluAffiliateLink) { %>
+                            <div class="status-badge status-pronto">Pronto</div>
+                        <% } else { %>
+                            <div class="status-badge status-pendente">Pendente</div>
+                        <% } %>
+                        <button class="btn btn-config" data-bs-toggle="modal" data-bs-target="#modalMagalu"><i class="bi bi-gear me-2"></i> Configurar</button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- Modal Amazon -->
+<div class="modal fade" id="modalAmazon" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form action="/settings" method="POST">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold">Configurar Amazon</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label">Partner Tag (ID de Associado)</label>
+                <input type="text" class="form-control" name="amazonTag" value="<%= settings.amazonTag %>" placeholder="Ex: seunome-20">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Link ou modelo de afiliado</label>
+                <input type="text" class="form-control" name="amazonAffiliateTemplate" value="<%= settings.amazonAffiliateTemplate %>" placeholder="Opcional: deeplink com {url}">
+                <div class="text-muted small mt-2">
+                    Com <code>{url}</code> no meio, o endereço do produto entra no lugar (deeplink de rede de afiliados).
+                    Sem <code>{url}</code>, o link salvo substitui o do produto. Em branco, publica o link original da loja.
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Parâmetros extras (opcional)</label>
+                <input type="text" class="form-control" name="amazonAffiliateParams" value="<%= settings.amazonAffiliateParams %>" placeholder="Ex: sub_id=grupo-whatsapp">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Gravar Depois</button>
+            <button type="submit" class="btn btn-primary">Salvar Chave</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal AliExpress -->
+<div class="modal fade" id="modalAli" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form action="/settings" method="POST">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold">Configurar AliExpress</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label">API Key</label>
+                <input type="text" class="form-control" name="aliApiKey" value="<%= settings.aliApiKey %>">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">API Secret</label>
+                <input type="text" class="form-control" name="aliApiSecret" value="<%= settings.aliApiSecret %>">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Tracking ID</label>
+                <input type="text" class="form-control" name="aliTrackingId" value="<%= settings.aliTrackingId %>">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Link ou modelo de afiliado</label>
+                <input type="text" class="form-control" name="aliAffiliateTemplate" value="<%= settings.aliAffiliateTemplate %>" placeholder="Ex: https://s.click.aliexpress.com/deep_link.htm?dl_target_url={url}">
+                <div class="text-muted small mt-2">
+                    Com <code>{url}</code> no meio, o endereço do produto entra no lugar (deeplink de rede de afiliados).
+                    Sem <code>{url}</code>, o link salvo substitui o do produto. Em branco, publica o link original da loja.
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Parâmetros extras (opcional)</label>
+                <input type="text" class="form-control" name="aliAffiliateParams" value="<%= settings.aliAffiliateParams %>" placeholder="Ex: sub_id=grupo-whatsapp">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="submit" class="btn btn-primary">Salvar Chaves</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Shopee -->
+<div class="modal fade" id="modalShopee" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form action="/settings" method="POST">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold">Configurar Shopee</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label">App Key</label>
+                <input type="text" class="form-control" name="shopeeAppKey" value="<%= settings.shopeeAppKey %>">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">App Secret</label>
+                <input type="password" class="form-control" name="shopeeAppSecret" value="<%= settings.shopeeAppSecret %>">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Link ou modelo de afiliado</label>
+                <input type="text" class="form-control" name="shopeeAffiliateTemplate" value="<%= settings.shopeeAffiliateTemplate %>" placeholder="Ex: https://s.shopee.com.br/... ou modelo com {url}">
+                <div class="text-muted small mt-2">
+                    Com <code>{url}</code> no meio, o endereço do produto entra no lugar (deeplink de rede de afiliados).
+                    Sem <code>{url}</code>, o link salvo substitui o do produto. Em branco, publica o link original da loja.
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Parâmetros extras (opcional)</label>
+                <input type="text" class="form-control" name="shopeeAffiliateParams" value="<%= settings.shopeeAffiliateParams %>" placeholder="Ex: sub_id=grupo-whatsapp">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="submit" class="btn btn-primary">Salvar Chaves</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Mercado Livre -->
+<div class="modal fade" id="modalML" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form action="/settings" method="POST">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold">Configurar Mercado Livre</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label">Link de Afiliado</label>
+                <input type="text" class="form-control" name="mlAffiliateLink" value="<%= settings.mlAffiliateLink %>" placeholder="Cole seu link geral de afiliado do ML">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Link ou modelo de afiliado</label>
+                <input type="text" class="form-control" name="mlAffiliateTemplate" value="<%= settings.mlAffiliateTemplate %>" placeholder="Opcional: deeplink com {url}">
+                <div class="text-muted small mt-2">
+                    Com <code>{url}</code> no meio, o endereço do produto entra no lugar (deeplink de rede de afiliados).
+                    Sem <code>{url}</code>, o link salvo substitui o do produto. Em branco, publica o link original da loja.
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Parâmetros extras (opcional)</label>
+                <input type="text" class="form-control" name="mlAffiliateParams" value="<%= settings.mlAffiliateParams %>" placeholder="Ex: sub_id=grupo-whatsapp">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Magalu -->
+<div class="modal fade" id="modalMagalu" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form action="/settings" method="POST">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold text-primary">Configurar Magalu</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label">Seu Link Afiliado Genérico Magalu</label>
+                <input type="text" class="form-control" name="magaluAffiliateLink" value="<%= settings.magaluAffiliateLink %>" placeholder="Ex: https://www.magazinevoce.com.br/magazineSEUNOME/">
+                <div class="text-muted small mt-2">Usado como link base genérico quando postar apenas cupons ou não for possível embutir no produto.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Link ou modelo de afiliado</label>
+                <input type="text" class="form-control" name="magaluAffiliateTemplate" value="<%= settings.magaluAffiliateTemplate %>" placeholder="Opcional: deeplink com {url}">
+                <div class="text-muted small mt-2">
+                    Com <code>{url}</code> no meio, o endereço do produto entra no lugar (deeplink de rede de afiliados).
+                    Sem <code>{url}</code>, o link salvo substitui o do produto. Em branco, publica o link original da loja.
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Parâmetros extras (opcional)</label>
+                <input type="text" class="form-control" name="magaluAffiliateParams" value="<%= settings.magaluAffiliateParams %>" placeholder="Ex: sub_id=grupo-whatsapp">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal KaBuM! -->
+<div class="modal fade" id="modalKabum" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form action="/settings" method="POST">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold">Configurar KaBuM!</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-dark border-secondary small">
+                <i class="bi bi-info-circle me-1"></i>
+                O programa de afiliados da KaBuM! roda por rede (Awin/Rakuten): cole aqui o
+                deeplink que a rede gera, com <code>{url}</code> no lugar do endereço do produto.
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Link ou modelo de afiliado</label>
+                <input type="text" class="form-control" name="kabumAffiliateTemplate" value="<%= settings.kabumAffiliateTemplate %>" placeholder="Ex: https://www.awin1.com/cread.php?awinmid=00000&awinaffid=00000&ued={url}">
+                <div class="text-muted small mt-2">
+                    Com <code>{url}</code> no meio, o endereço do produto entra no lugar (deeplink de rede de afiliados).
+                    Sem <code>{url}</code>, o link salvo substitui o do produto. Em branco, publica o link original da loja.
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Parâmetros extras (opcional)</label>
+                <input type="text" class="form-control" name="kabumAffiliateParams" value="<%= settings.kabumAffiliateParams %>" placeholder="Ex: sub_id=grupo-whatsapp">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+.venv/
+ENV/
+env/
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# Temporary Scraped Data Files
+data/*.json
+data/*.csv
+!data/.gitkeep
+
+# Cookies de sessão dos marketplaces (podem identificar suas buscas)
+data/profiles/
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store

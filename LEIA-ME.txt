@@ -1,0 +1,122 @@
+===========================================================================
+ PRECO BANANA - versao portatil (pendrive)
+===========================================================================
+
+COMO USAR
+---------
+ 1. Espete o pendrive em qualquer PC com Windows 10 ou 11 (64 bits).
+ 2. Duplo clique em INICIAR.bat
+ 3. Espere. Num PC novo a primeira abertura leva de 1 a 3 minutos, porque o
+    programa esta sendo lido do pendrive. Os pontinhos na tela mostram que
+    esta trabalhando - NAO arranque o pendrive achando que travou.
+    Quando ficar pronto, o navegador abre sozinho ja no painel - sem senha.
+ 4. Ao terminar: aperte Q na janela preta (ou rode PARAR.bat) e SO ENTAO
+    remova o pendrive.
+
+ Nao precisa instalar nada. Nao precisa ser administrador. Nada e' gravado
+ fora do pendrive: Python, Node e Firefox viajam dentro dele.
+
+
+POR QUE ISSO EXISTE
+-------------------
+ Mercado Livre e Amazon bloqueiam faixas de IP de datacenter (servidor/VPS)
+ antes mesmo de olhar o navegador. Eles liberam IP residencial. Como o que
+ importa e' de qual REDE a busca sai, levar o programa no pendrive e rodar
+ de dentro de uma casa e' o jeito mais barato de continuar funcionando.
+
+ Consequencia direta: rodar em wifi de escola, empresa ou cafe pode nao
+ funcionar. Rede domestica funciona.
+
+
+LOJAS QUE O PROGRAMA BUSCA
+--------------------------
+ Mercado Livre, Amazon, Shopee, AliExpress e KaBuM!.
+
+ No portal, escolha a loja no campo "Plataforma". "Todas as lojas" busca nas
+ cinco de uma vez e mistura os resultados na tabela, alternando entre elas.
+
+ KaBuM! e AliExpress respondem a uma requisicao simples e voltam em 1 ou 2
+ segundos. Mercado Livre, Amazon e Shopee precisam abrir o Firefox, entao
+ demoram mais.
+
+ A Shopee e' a mais rigorosa das cinco: ela barra IP que nao pareca de casa e
+ troca a busca por uma tela de verificacao (rede de empresa, escola ou orgao
+ publico cai nisso; abrir a janela visivel nao ajuda, a decisao e' pelo IP).
+ Quando acontece, o portal escreve o motivo na tela em vez de dizer so
+ "0 produtos".
+
+ Saida definitiva para a Shopee: cadastre o App ID e o App Secret da API de
+ Afiliados na tela de configuracao do portal (engrenagem > Shopee - API de
+ Afiliados). Com eles o programa usa a API oficial, que responde de qualquer
+ rede e ja entrega o link afiliado pronto. As chaves saem em
+ affiliate.shopee.com.br, secao Open API - e a conta precisa estar aprovada
+ para usa-la.
+
+ Os links de afiliado ficam em dois lugares, e os dois gravam no mesmo banco:
+ o painel "Integrador de Afiliados" do portal e a tela "Minhas Afiliacoes" do
+ bot. Enquanto voce nao preencher, o programa publica no grupo o link normal
+ da loja - nada quebra por estar em branco.
+
+
+SEM SENHA (e por que isso e' seguro aqui)
+-----------------------------------------
+ O portal abre direto, sem tela de login. Rodando so nesta maquina, a senha
+ nao protegeria nada mesmo: quem esta sentado no computador abre o arquivo
+ app\web_scraping\.env.local no Bloco de Notas e le a senha em dois cliques.
+
+ A protecao de verdade e' outra: o programa so aceita conexao de 127.0.0.1,
+ ou seja, do proprio computador. Ninguem do mesmo wifi alcanca.
+
+ Se voce trocar SOMENTE_ESTA_MAQUINA para 0 no config.txt, a tela de login
+ volta sozinha - nao da para ficar aberto na rede E sem senha ao mesmo tempo.
+
+
+REGRAS QUE IMPORTAM
+-------------------
+ * UMA COPIA POR VEZ. A sessao do WhatsApp mora no pendrive e o WhatsApp nao
+   aceita o mesmo aparelho conectado em dois lugares. Rodando em dois PCs ao
+   mesmo tempo, os dois caem e voce vai ter que ler o QR Code de novo.
+
+ * SEMPRE ENCERRE ANTES DE TIRAR. Arrancar o pendrive com o programa aberto
+   pode corromper o settings.db (seus links de afiliado) e a sessao do
+   WhatsApp. E' o PARAR.bat que solta os arquivos.
+
+ * USE PORTA USB 3.0 (a azul). O navegador roda de dentro do pendrive; numa
+   porta USB 2.0 antiga a busca fica lenta.
+
+ * O PENDRIVE E' A CHAVE DE TUDO. Quem tiver ele em maos consegue publicar no
+   seu grupo de WhatsApp e ler seu token do Telegram - eles ficam em arquivo
+   de texto aqui dentro. Se for andar com ele por ai, vale ligar o BitLocker
+   To Go (clique direito no pendrive > Ativar BitLocker).
+
+
+SE NAO ABRIR
+------------
+ "O Windows protegeu o computador" (SmartScreen)
+     Clique em "Mais informacoes" > "Executar assim mesmo".
+
+ A janela preta pisca e some
+     Abra a pasta logs\ e leia bot.err.log e portal.err.log.
+
+ "Porta ocupada"
+     O INICIAR.bat ja procura outra porta sozinho. Se ainda assim falhar,
+     abra config.txt e troque PORTA_PORTAL=5000 por 5050.
+
+ O antivirus reclamou
+     E' o node.exe/python.exe rodando de midia removivel. Libere a pasta do
+     pendrive na lista de excecoes do antivirus.
+
+ Quero abrir do celular no mesmo wifi
+     Abra config.txt e troque SOMENTE_ESTA_MAQUINA=1 por 0. Faca isso apenas
+     em rede que voce confia. ATENCAO: nesse momento a tela de login volta a
+     ser exigida automaticamente - a senha esta no arquivo
+     app\web_scraping\.env.local, na linha PORTAL_PASSWORD.
+
+
+O QUE TEM AQUI DENTRO
+---------------------
+ INICIAR.bat / PARAR.bat  atalhos
+ config.txt               portas e preferencias
+ app\                     o programa
+ runtime\                 Python, Node e Firefox embarcados
+ logs\                    o que aconteceu na ultima execucao

@@ -1,0 +1,16 @@
+node_modules/
+.env
+.wwebjs_auth/
+.wwebjs_cache/
+
+# Estado em runtime: banco de configurações e sessão do WhatsApp
+data/
+settings.db
+auth_info_baileys/
+
+*.log
+deploy.zip
+
+# package-lock.json NÃO é ignorado de propósito: sem ele o `npm ci` do
+# Dockerfile não roda e cada build resolve versões diferentes do Baileys,
+# que quebra com frequência entre releases menores.

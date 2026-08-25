@@ -1,0 +1,22 @@
+# Runtime e dependências pesadas
+runtime/
+node_modules/
+.venv/
+env/
+venv/
+
+# Logs e arquivos temporários
+logs/
+*.log
+*.tmp
+*.temp
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Configurações do ambiente / VS Code / IDEs
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,13 @@
+# Dependências do modo portátil (Windows / pendrive).
+#
+# Diferença para requirements.txt: gunicorn sai (é Unix-only, depende de fcntl)
+# e entra waitress, usado por servir.py. O resto é idêntico — inclusive a versão
+# fixa do playwright, que precisa casar com o build do Firefox baixado para
+# runtime\browsers pelo montar-pendrive.ps1.
+playwright==1.50.0
+pandas>=2.0.0
+rich>=13.0.0
+flask>=3.0.0
+requests>=2.30.0
+python-dotenv>=1.0.0
+waitress>=3.0.0
