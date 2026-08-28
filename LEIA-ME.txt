@@ -54,8 +54,23 @@ LOJAS QUE O PROGRAMA BUSCA
 
  Os links de afiliado ficam em dois lugares, e os dois gravam no mesmo banco:
  o painel "Integrador de Afiliados" do portal e a tela "Minhas Afiliacoes" do
- bot. Enquanto voce nao preencher, o programa publica no grupo o link normal
- da loja - nada quebra por estar em branco.
+ bot. As duas telas mostram as MESMAS lojas e os mesmos campos - elas se
+ desenham a partir da mesma lista, entao tanto faz por onde voce configura.
+ Enquanto voce nao preencher, o programa publica no grupo o link normal da
+ loja - nada quebra por estar em branco.
+
+ Cada loja aceita ate quatro campos. Preencha so o que a sua rede de afiliados
+ pedir:
+   * Tag          - entra como parametro no proprio link do produto (Amazon).
+   * Link fixo    - substitui o link do produto pelo seu link de divulgacao.
+   * Modelo       - com {url} no meio, o link do produto entra no lugar. E' o
+                    formato de deeplink da Awin, da Shopee e do AliExpress.
+   * Parametros   - sub_id, utm_source e afins, anexados no fim de tudo.
+
+ Link que JA nasce afiliado nao e' reescrito. Se a busca da Shopee vier pela
+ API oficial, ela ja devolve o link com a sua comissao; o programa reconhece
+ isso e nao troca pelo modelo, so acrescenta os parametros extras. O mesmo vale
+ para os links /sec/ do Mercado Livre e magazinevoce do Magalu.
 
 
 SEM SENHA (e por que isso e' seguro aqui)
@@ -78,8 +93,14 @@ REGRAS QUE IMPORTAM
    mesmo tempo, os dois caem e voce vai ter que ler o QR Code de novo.
 
  * SEMPRE ENCERRE ANTES DE TIRAR. Arrancar o pendrive com o programa aberto
-   pode corromper o settings.db (seus links de afiliado) e a sessao do
-   WhatsApp. E' o PARAR.bat que solta os arquivos.
+   pode corromper o settings.db - que agora guarda TANTO os seus links de
+   afiliado QUANTO a sessao do WhatsApp. E' o PARAR.bat que solta o arquivo.
+
+   (A sessao do WhatsApp morava numa pasta com mais de mil arquivinhos, o pior
+   caso possivel para pendrive. Ela foi movida para dentro do settings.db na
+   primeira vez que voce abrir esta versao - nao precisa ler o QR Code de novo.
+   A pasta antiga app\bot-divulgar-produtos\auth_info_baileys\ fica ali como
+   backup e pode ser apagada depois que voce confirmar que conectou normal.)
 
  * USE PORTA USB 3.0 (a azul). O navegador roda de dentro do pendrive; numa
    porta USB 2.0 antiga a busca fica lenta.

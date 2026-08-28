@@ -1,7 +1,11 @@
 const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const { camposDeAfiliado } = require('./afiliados');
+const { camposDeAfiliado, camposSecretos } = require('./afiliados');
+
+// Placeholder que as telas recebem no lugar de um segredo já salvo. Quando ele
+// volta num POST significa "não mexi neste campo", nunca "apague o valor".
+const MASCARA = '••••••••';
 
 // O banco vive em ./data para que um único volume do Docker preserve as
 // configurações. Antes o settings.db ficava na raiz do projeto, era copiado
@@ -92,12 +96,23 @@ const UPDATABLE = [...new Set([
     ...camposDeAfiliado()
 ])];
 
+/** Um campo só é gravado se veio de verdade no corpo da requisição. */
+function valorParaGravar(settings, col) {
+    const bruto = settings[col];
+    if (bruto === undefined || bruto === null) return null;
+
+    // Segredo devolvido mascarado pela tela: o usuário não digitou nada novo.
+    if (typeof bruto === 'string' && /^[•*]+$/.test(bruto.trim())) return null;
+
+    return bruto;
+}
+
 function updateSettings(settings) {
     return new Promise((resolve, reject) => {
         // COALESCE(?, coluna) preserva o valor atual quando o campo não veio no
         // corpo da requisição — salvar só a tag da Amazon não apaga o resto.
         const assignments = UPDATABLE.map(col => `${col} = COALESCE(?, ${col})`).join(', ');
-        const values = UPDATABLE.map(col => (settings[col] === undefined ? null : settings[col]));
+        const values = UPDATABLE.map(col => valorParaGravar(settings, col));
 
         db.run(
             `UPDATE settings SET ${assignments} WHERE id = 1`,
@@ -110,4 +125,24 @@ function updateSettings(settings) {
     });
 }
 
-module.exports = { db, getSettings, updateSettings };
+// Campos que nunca devem trafegar em texto puro para uma tela.
+// `aliApiSecret` continua aqui só porque a coluna antiga ainda pode ter valor.
+const SEGREDOS = [...new Set([...camposSecretos(), 'telegramBotToken', 'aliApiSecret'])];
+
+/**
+ * Cópia das configurações com os segredos trocados pelo placeholder.
+ *
+ * O GET /api/bot-settings devolvia o token do Telegram e o App Secret da
+ * Shopee inteiros para o navegador. Quem abrisse o DevTools na tela de
+ * configuração lia os dois. Agora a tela recebe `••••••••` e, se o usuário não
+ * digitar nada por cima, `valorParaGravar` ignora o placeholder na volta.
+ */
+function mascararSegredos(settings) {
+    const copia = { ...(settings || {}) };
+    for (const col of SEGREDOS) {
+        if (copia[col]) copia[col] = MASCARA;
+    }
+    return copia;
+}
+
+module.exports = { db, getSettings, updateSettings, mascararSegredos, MASCARA, SEGREDOS };

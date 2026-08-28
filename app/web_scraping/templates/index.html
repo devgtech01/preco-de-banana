@@ -282,33 +282,29 @@
                 <div id="collapseAffiliates" class="accordion-collapse collapse" aria-labelledby="headingAffiliates" data-bs-parent="#affiliateAccordion">
                     <div class="accordion-body p-4">
                         <form id="quickSettingsForm" class="row g-3">
-                            <div class="col-md-6">
-                                <label for="quickAmazonTag" class="form-label text-muted small fw-bold"><i class="fa-brands fa-amazon me-1 text-warning"></i> Amazon Tag de Afiliado:</label>
-                                <input type="text" id="quickAmazonTag" class="form-control bg-dark text-light border-secondary" placeholder="Ex: suatag-20">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="quickMlLink" class="form-label text-muted small fw-bold"><i class="fa-solid fa-cart-shopping me-1 text-warning"></i> Mercado Livre Link Afiliado Base:</label>
-                                <input type="text" id="quickMlLink" class="form-control bg-dark text-light border-secondary" placeholder="Ex: https://mercadolivre.com.br/sec/...">
-                            </div>
-
-                            <!-- Lojas novas: o campo aceita tanto um link fixo de afiliado
-                                 quanto um modelo com {url}, que a plataforma troca pelo link
-                                 do produto (é o formato dos deeplinks de Awin/Shopee/Ali). -->
-                            <div class="col-md-4">
-                                <label for="quickShopeeLink" class="form-label text-muted small fw-bold"><i class="fa-solid fa-bag-shopping me-1" style="color: var(--accent-shopee)"></i> Shopee — link ou modelo:</label>
-                                <input type="text" id="quickShopeeLink" class="form-control bg-dark text-light border-secondary" placeholder="Ex: https://s.shopee.com.br/... ou modelo com {url}">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="quickAliLink" class="form-label text-muted small fw-bold"><i class="fa-solid fa-globe me-1" style="color: var(--accent-ali)"></i> AliExpress — link ou modelo:</label>
-                                <input type="text" id="quickAliLink" class="form-control bg-dark text-light border-secondary" placeholder="Ex: https://s.click.aliexpress.com/... ou modelo com {url}">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="quickKabumLink" class="form-label text-muted small fw-bold"><i class="fa-solid fa-microchip me-1 text-primary"></i> KaBuM! — link ou modelo:</label>
-                                <input type="text" id="quickKabumLink" class="form-control bg-dark text-light border-secondary" placeholder="Ex: https://www.awin1.com/cread.php?...&amp;ued={url}">
+                            <!--
+                              Os campos das lojas vêm de /api/affiliate-schema,
+                              que por sua vez vem do afiliados.js. Escritos na
+                              mão, este painel mostrava 1 campo de 4 por loja e
+                              nem listava o Magalu: quem configurasse por aqui
+                              não alcançava os deeplinks nem os sub-ids.
+                            -->
+                            <div class="col-12">
+                                <div id="quickAffiliateFields" class="row g-3">
+                                    <div class="col-12 text-muted small">Carregando lojas…</div>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="quickWaGroup" class="form-label text-muted small fw-bold"><i class="fa-brands fa-whatsapp me-1 text-success"></i> ID do Grupo WhatsApp:</label>
+                                <label for="quickWaGroup" class="form-label text-muted small fw-bold"><i class="fa-brands fa-whatsapp me-1 text-success"></i> Grupo do WhatsApp:</label>
+                                <div class="input-group mb-2">
+                                    <select id="quickWaGroupList" class="form-select bg-dark text-light border-secondary" disabled>
+                                        <option>Carregando grupos…</option>
+                                    </select>
+                                    <button class="btn btn-outline-secondary" type="button" data-recarregar-grupos title="Recarregar">
+                                        <i class="fa-solid fa-rotate"></i>
+                                    </button>
+                                </div>
                                 <input type="text" id="quickWaGroup" class="form-control bg-dark text-light border-secondary" placeholder="Ex: 120363406538141998@g.us">
                             </div>
                             <div class="col-md-6">
@@ -597,60 +593,9 @@
                             <i class="fa-solid fa-tags me-2 text-info"></i> Integração de Afiliados
                         </h6>
 
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label for="modalAmazonTag" class="form-label text-muted small">Amazon Affiliate Tag:</label>
-                                <input type="text" id="modalAmazonTag" class="form-control bg-dark text-light border-secondary" placeholder="Ex: suatag-20">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="modalMlLink" class="form-label text-muted small">Mercado Livre Link Afiliado Base:</label>
-                                <input type="text" id="modalMlLink" class="form-control bg-dark text-light border-secondary" placeholder="Ex: https://mercadolivre.com.br/sec/...">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="modalShopeeLink" class="form-label text-muted small">Shopee — link ou modelo:</label>
-                                <input type="text" id="modalShopeeLink" class="form-control bg-dark text-light border-secondary" placeholder="https://s.shopee.com.br/... ou modelo com {url}">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="modalAliLink" class="form-label text-muted small">AliExpress — link ou modelo:</label>
-                                <input type="text" id="modalAliLink" class="form-control bg-dark text-light border-secondary" placeholder="https://s.click.aliexpress.com/... ou modelo com {url}">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="modalKabumLink" class="form-label text-muted small">KaBuM! — link ou modelo:</label>
-                                <input type="text" id="modalKabumLink" class="form-control bg-dark text-light border-secondary" placeholder="https://www.awin1.com/cread.php?...&amp;ued={url}">
-                            </div>
-                            <div class="col-12">
-                                <div class="alert alert-dark border-secondary small mb-0 py-2">
-                                    <i class="fa-solid fa-circle-info me-1 text-info"></i>
-                                    Deixe em branco para publicar o link direto da loja. Com
-                                    <code>{url}</code> no meio, o endereço do produto entra no lugar
-                                    (deeplink); sem <code>{url}</code>, o link salvo substitui o do produto.
-                                </div>
-                            </div>
-                        </div>
-
-                        <h6 class="text-light fw-bold mb-3 border-bottom border-secondary pb-2">
-                            <i class="fa-solid fa-key me-2 text-warning"></i> Shopee — API de Afiliados
-                        </h6>
-
-                        <div class="row g-3 mb-3">
-                            <div class="col-12">
-                                <div class="alert alert-dark border-secondary small mb-0 py-2">
-                                    <i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i>
-                                    A Shopee bloqueia a busca comum vinda de rede que não pareça
-                                    residencial. Com estas chaves o portal usa a API oficial, que
-                                    funciona de qualquer rede e já devolve o link afiliado pronto —
-                                    aí o campo de link/modelo acima fica desnecessário para a Shopee.
-                                    As chaves saem em <strong>affiliate.shopee.com.br &gt; Open API</strong>.
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="modalShopeeAppId" class="form-label text-muted small">Shopee App ID:</label>
-                                <input type="text" id="modalShopeeAppId" class="form-control bg-dark text-light border-secondary" placeholder="Ex: 15364800123">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="modalShopeeAppSecret" class="form-label text-muted small">Shopee App Secret:</label>
-                                <input type="password" id="modalShopeeAppSecret" class="form-control bg-dark text-light border-secondary" placeholder="Chave secreta da Open API">
-                            </div>
+                        <!-- Mesma fonte do painel rápido: /api/affiliate-schema. -->
+                        <div id="modalAffiliateFields" class="row g-3 mb-4">
+                            <div class="col-12 text-muted small">Carregando lojas…</div>
                         </div>
 
                         <h6 class="text-light fw-bold mb-3 border-bottom border-secondary pb-2">
@@ -659,7 +604,15 @@
 
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label for="modalWaGroup" class="form-label text-muted small">ID do Grupo WhatsApp:</label>
+                                <label for="modalWaGroup" class="form-label text-muted small">Grupo do WhatsApp:</label>
+                                <div class="input-group mb-2">
+                                    <select id="modalWaGroupList" class="form-select bg-dark text-light border-secondary" disabled>
+                                        <option>Carregando grupos…</option>
+                                    </select>
+                                    <button class="btn btn-outline-secondary" type="button" data-recarregar-grupos title="Recarregar">
+                                        <i class="fa-solid fa-rotate"></i>
+                                    </button>
+                                </div>
                                 <input type="text" id="modalWaGroup" class="form-control bg-dark text-light border-secondary" placeholder="Ex: 120363406538141998@g.us">
                             </div>
                             <div class="col-md-6">
@@ -695,6 +648,15 @@
             fetchMetricsAndStatus();
             setInterval(fetchMetricsAndStatus, 3000);
             loadBotSettings();
+
+            // A lista de grupos depende do WhatsApp estar conectado, o que
+            // costuma acontecer alguns segundos depois de a página abrir; por
+            // isso ela também recarrega quando o modal é aberto.
+            carregarGruposWhatsApp();
+            const modalConfig = document.getElementById('settingsModal');
+            if (modalConfig) {
+                modalConfig.addEventListener('shown.bs.modal', carregarGruposWhatsApp);
+            }
         });
 
         // Atualização contínua das métricas de CPU, RAM e Status dos Canais
@@ -786,38 +748,224 @@
                     waArea.innerHTML = `<div class="text-danger small p-2"><i class="fa-solid fa-circle-xmark me-2"></i> O servidor do Bot Node.js não está rodando.</div>`;
                 }
 
+                await carregarEsquemaDeLojas();
+
                 const resConfig = await fetch('/api/bot-settings');
                 const configData = await resConfig.json();
 
                 if (configData.success && configData.settings) {
-                    const s = configData.settings;
-                    document.getElementById('modalAmazonTag').value = s.amazonTag || '';
-                    document.getElementById('modalMlLink').value = s.mlAffiliateLink || '';
-                    document.getElementById('modalShopeeLink').value = s.shopeeAffiliateTemplate || '';
-                    document.getElementById('modalAliLink').value = s.aliAffiliateTemplate || '';
-                    document.getElementById('modalKabumLink').value = s.kabumAffiliateTemplate || '';
-                    document.getElementById('modalShopeeAppId').value = s.shopeeAppKey || '';
-                    document.getElementById('modalShopeeAppSecret').value = s.shopeeAppSecret || '';
-                    document.getElementById('modalWaGroup').value = s.whatsappGroupId || '';
-                    document.getElementById('modalTgChat').value = s.telegramChatId || '';
-                    document.getElementById('modalTgToken').value = s.telegramBotToken || '';
-
-                    document.getElementById('quickAmazonTag').value = s.amazonTag || '';
-                    document.getElementById('quickMlLink').value = s.mlAffiliateLink || '';
-                    document.getElementById('quickShopeeLink').value = s.shopeeAffiliateTemplate || '';
-                    document.getElementById('quickAliLink').value = s.aliAffiliateTemplate || '';
-                    document.getElementById('quickKabumLink').value = s.kabumAffiliateTemplate || '';
-                    document.getElementById('quickWaGroup').value = s.whatsappGroupId || '';
-                    document.getElementById('quickTgChat').value = s.telegramChatId || '';
-
-                    if (s.telegramChatId) {
-                        document.getElementById('tgChatIdSub').textContent = s.telegramChatId;
-                    }
+                    settingsAtuais = configData.settings;
+                    aplicarSettingsNaTela(settingsAtuais);
                 }
             } catch (err) {
                 console.error("Erro ao carregar configurações:", err);
+                // settingsAtuais continua null de propósito: é o que impede o
+                // "Salvar" de gravar campos vazios por cima do que está no banco.
             }
         }
+
+        /**
+         * Estado das configurações do bot.
+         *
+         * `settingsAtuais === null` significa "nunca consegui ler o banco". Sem
+         * essa distinção acontecia o seguinte: se o bot ainda estivesse subindo
+         * quando a página abrisse, o GET falhava, os campos ficavam vazios e o
+         * primeiro clique em Salvar apagava todos os links de afiliado — porque
+         * o formulário mandava string vazia e o COALESCE do banco só protege
+         * campo AUSENTE, não campo vazio.
+         */
+        let esquemaLojas = [];
+        let settingsAtuais = null;
+
+        // id do input no HTML -> coluna no banco do bot.
+        const CAMPOS_DE_CANAL = {
+            quickWaGroup: 'whatsappGroupId',
+            quickTgChat: 'telegramChatId',
+            modalWaGroup: 'whatsappGroupId',
+            modalTgChat: 'telegramChatId',
+            modalTgToken: 'telegramBotToken'
+        };
+
+        async function carregarEsquemaDeLojas() {
+            if (esquemaLojas.length) return;
+            try {
+                const res = await fetch('/api/affiliate-schema');
+                const dados = await res.json();
+                if (dados.success && Array.isArray(dados.lojas)) {
+                    esquemaLojas = dados.lojas;
+                    desenharCampos('quickAffiliateFields', 'quick');
+                    desenharCampos('modalAffiliateFields', 'modal');
+                }
+            } catch (err) {
+                console.error('Erro ao carregar o esquema de afiliados:', err);
+            }
+        }
+
+        function escapar(texto) {
+            return String(texto == null ? '' : texto)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        /** Desenha um bloco por loja, com todos os campos que o bot conhece. */
+        function desenharCampos(idContainer, prefixo) {
+            const container = document.getElementById(idContainer);
+            if (!container) return;
+
+            container.innerHTML = esquemaLojas.map(function (loja) {
+                const campos = loja.campos.map(function (campo) {
+                    const id = prefixo + '__' + campo.nome;
+                    return ''
+                        + '<div class="col-md-6">'
+                        + '<label for="' + id + '" class="form-label text-muted small">' + escapar(campo.rotulo) + '</label>'
+                        + '<input type="' + campo.tipo + '" id="' + id + '" data-campo="' + campo.nome + '"'
+                        + ' class="form-control form-control-sm bg-dark text-light border-secondary"'
+                        + ' placeholder="' + escapar(campo.placeholder) + '">'
+                        + (campo.ajuda ? '<div class="form-text text-muted" style="font-size:11px">' + escapar(campo.ajuda) + '</div>' : '')
+                        + '</div>';
+                }).join('');
+
+                return ''
+                    + '<div class="col-12">'
+                    + '<div class="border border-secondary rounded p-3 h-100">'
+                    + '<div class="fw-bold text-light mb-2">' + escapar(loja.rotulo) + '</div>'
+                    + (loja.aviso ? '<div class="alert alert-dark border-secondary small py-2">' + escapar(loja.aviso) + '</div>' : '')
+                    + '<div class="row g-2">' + campos + '</div>'
+                    + '</div></div>';
+            }).join('');
+        }
+
+        function aplicarSettingsNaTela(s) {
+            document.querySelectorAll('[data-campo]').forEach(function (input) {
+                input.value = s[input.dataset.campo] || '';
+            });
+
+            for (const id in CAMPOS_DE_CANAL) {
+                const input = document.getElementById(id);
+                if (input) input.value = s[CAMPOS_DE_CANAL[id]] || '';
+            }
+
+            if (s.telegramChatId) {
+                const sub = document.getElementById('tgChatIdSub');
+                if (sub) sub.textContent = s.telegramChatId;
+            }
+
+            sincronizarSelecaoDeGrupo();
+        }
+
+        /**
+         * Só o que o usuário realmente mudou vai no POST.
+         *
+         * Campo que não entra no corpo é preservado pelo COALESCE do bot, então
+         * salvar pelo painel rápido não encosta no que foi configurado pelo
+         * modal — e um segredo que voltou mascarado ("••••••••") não é
+         * reenviado, porque continua igual ao que a tela recebeu.
+         */
+        function coletarAlteracoes(prefixo) {
+            const mudancas = {};
+
+            document.querySelectorAll('[data-campo]').forEach(function (input) {
+                if (!input.id.startsWith(prefixo + '__')) return;
+                const nome = input.dataset.campo;
+                if (input.value !== (settingsAtuais[nome] || '')) mudancas[nome] = input.value;
+            });
+
+            for (const id in CAMPOS_DE_CANAL) {
+                if (!id.startsWith(prefixo)) continue;
+                const input = document.getElementById(id);
+                if (!input) continue;
+                const nome = CAMPOS_DE_CANAL[id];
+                if (input.value !== (settingsAtuais[nome] || '')) mudancas[nome] = input.value;
+            }
+
+            return mudancas;
+        }
+
+        async function salvarConfiguracoes(prefixo, mensagemOk) {
+            if (settingsAtuais === null) {
+                alert('As configurações atuais ainda não foram lidas do bot. '
+                    + 'Salvar agora apagaria o que está gravado. Verifique se o bot está rodando e recarregue a página.');
+                return false;
+            }
+
+            const mudancas = coletarAlteracoes(prefixo);
+            if (!Object.keys(mudancas).length) {
+                alert('Nada mudou.');
+                return true;
+            }
+
+            const res = await fetch('/api/bot-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(mudancas)
+            });
+            const data = await res.json();
+
+            if (!data.success) {
+                alert('Erro ao salvar: ' + (data.error || 'Falha'));
+                return false;
+            }
+
+            alert(mensagemOk);
+            await loadBotSettings();
+            return true;
+        }
+
+        /** Lista os grupos do WhatsApp nos dois seletores da tela. */
+        async function carregarGruposWhatsApp() {
+            const seletores = ['quickWaGroupList', 'modalWaGroupList']
+                .map(function (id) { return document.getElementById(id); })
+                .filter(Boolean);
+            if (!seletores.length) return;
+
+            seletores.forEach(function (sel) {
+                sel.disabled = true;
+                sel.innerHTML = '<option>Carregando grupos…</option>';
+            });
+
+            let grupos = [];
+            let erro = 'Nenhum grupo encontrado';
+            try {
+                const res = await fetch('/api/wa-groups');
+                const dados = await res.json();
+                grupos = dados.grupos || [];
+                if (dados.error) erro = dados.error;
+            } catch (e) {
+                erro = 'Bot indisponível';
+            }
+
+            seletores.forEach(function (sel) {
+                if (!grupos.length) {
+                    sel.innerHTML = '<option value="">' + escapar(erro) + '</option>';
+                    return;
+                }
+                sel.innerHTML = '<option value="">— escolha um grupo —</option>'
+                    + grupos.map(function (g) {
+                        return '<option value="' + escapar(g.id) + '">'
+                            + escapar(g.nome) + ' (' + g.participantes + ')</option>';
+                    }).join('');
+                sel.disabled = false;
+            });
+
+            sincronizarSelecaoDeGrupo();
+        }
+
+        function sincronizarSelecaoDeGrupo() {
+            [['quickWaGroupList', 'quickWaGroup'], ['modalWaGroupList', 'modalWaGroup']].forEach(function (par) {
+                const sel = document.getElementById(par[0]);
+                const campo = document.getElementById(par[1]);
+                if (sel && campo && !sel.disabled) sel.value = campo.value || '';
+            });
+        }
+
+        document.addEventListener('change', function (e) {
+            const par = { quickWaGroupList: 'quickWaGroup', modalWaGroupList: 'modalWaGroup' }[e.target.id];
+            if (par && e.target.value) document.getElementById(par).value = e.target.value;
+        });
+
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('[data-recarregar-grupos]')) carregarGruposWhatsApp();
+        });
 
         // Identidade visual de cada loja num lugar só. Antes a tabela e o modal
         // de publicação tinham cada um o seu "isAmazon ? ... : ...", e incluir
@@ -943,96 +1091,47 @@
             }
         });
 
-        // Salvar via painel rápido
-        document.getElementById('quickSettingsForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btnSaveQuick');
-            const origHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Salvando...`;
+        // Os dois formulários salvam pelo mesmo caminho: só o que mudou vai no
+        // POST, e nada é enviado enquanto as configurações atuais não tiverem
+        // sido lidas do bot (ver salvarConfiguracoes).
+        function ligarFormularioDeConfiguracao(idForm, idBotao, prefixo, mensagemOk, aoTerminar) {
+            const form = document.getElementById(idForm);
+            if (!form) return;
 
-            try {
-                const amazonTag = document.getElementById('quickAmazonTag').value;
-                const mlAffiliateLink = document.getElementById('quickMlLink').value;
-                const shopeeAffiliateTemplate = document.getElementById('quickShopeeLink').value;
-                const aliAffiliateTemplate = document.getElementById('quickAliLink').value;
-                const kabumAffiliateTemplate = document.getElementById('quickKabumLink').value;
-                const whatsappGroupId = document.getElementById('quickWaGroup').value;
-                const telegramChatId = document.getElementById('quickTgChat').value;
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const btn = document.getElementById(idBotao);
+                const origHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Salvando...';
 
-                const res = await fetch('/api/bot-settings', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        amazonTag, mlAffiliateLink,
-                        shopeeAffiliateTemplate, aliAffiliateTemplate, kabumAffiliateTemplate,
-                        whatsappGroupId, telegramChatId
-                    })
-                });
-
-                const data = await res.json();
-                if (data.success) {
-                    alert('✨ Integração de Afiliados atualizada com sucesso!');
-                    loadBotSettings();
-                } else {
-                    alert('Erro ao salvar: ' + (data.error || 'Falha'));
+                try {
+                    const ok = await salvarConfiguracoes(prefixo, mensagemOk);
+                    if (ok && aoTerminar) aoTerminar();
+                } catch (err) {
+                    alert('Erro na conexão: ' + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
                 }
-            } catch (err) {
-                alert('Erro na conexão: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = origHtml;
+            });
+        }
+
+        ligarFormularioDeConfiguracao(
+            'quickSettingsForm', 'btnSaveQuick', 'quick',
+            '✨ Integração de Afiliados atualizada com sucesso!'
+        );
+
+        ligarFormularioDeConfiguracao(
+            'fullSettingsForm', 'btnSaveFull', 'modal',
+            '✨ Todas as configurações e tokens foram salvos!',
+            function () {
+                const modalElem = document.getElementById('settingsModal');
+                const modal = bootstrap.Modal.getInstance(modalElem);
+                if (modal) modal.hide();
             }
-        });
+        );
 
-        // Salvar via modal completo
-        document.getElementById('fullSettingsForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btnSaveFull');
-            const origHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Salvando...`;
-
-            try {
-                const amazonTag = document.getElementById('modalAmazonTag').value;
-                const mlAffiliateLink = document.getElementById('modalMlLink').value;
-                const shopeeAffiliateTemplate = document.getElementById('modalShopeeLink').value;
-                const aliAffiliateTemplate = document.getElementById('modalAliLink').value;
-                const kabumAffiliateTemplate = document.getElementById('modalKabumLink').value;
-                const shopeeAppKey = document.getElementById('modalShopeeAppId').value;
-                const shopeeAppSecret = document.getElementById('modalShopeeAppSecret').value;
-                const whatsappGroupId = document.getElementById('modalWaGroup').value;
-                const telegramChatId = document.getElementById('modalTgChat').value;
-                const telegramBotToken = document.getElementById('modalTgToken').value;
-
-                const res = await fetch('/api/bot-settings', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        amazonTag, mlAffiliateLink,
-                        shopeeAffiliateTemplate, aliAffiliateTemplate, kabumAffiliateTemplate,
-                        shopeeAppKey, shopeeAppSecret,
-                        whatsappGroupId, telegramChatId, telegramBotToken
-                    })
-                });
-
-                const data = await res.json();
-                if (data.success) {
-                    alert('✨ Todas as configurações e tokens foram salvos!');
-                    const modalElem = document.getElementById('settingsModal');
-                    const modal = bootstrap.Modal.getInstance(modalElem);
-                    if (modal) modal.hide();
-                    loadBotSettings();
-                } else {
-                    alert('Erro ao salvar: ' + (data.error || 'Falha'));
-                }
-            } catch (err) {
-                alert('Erro na conexão: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = origHtml;
-            }
-        });
 
         document.getElementById('searchForm').addEventListener('submit', async function(e) {
             e.preventDefault();

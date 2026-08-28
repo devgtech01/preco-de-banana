@@ -16,7 +16,7 @@
         /* Style dos Cards de Loja */
         .store-card { background-color: #161b22; border: 1px solid #30363d; border-radius: 12px; text-align: center; padding: 25px 20px; transition: transform 0.2s;}
         .store-card:hover { border-color: #8b949e; }
-        .store-logo { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; margin-bottom: 15px; background: white; padding: 5px;}
+        .store-logo { width: 60px; height: 60px; border-radius: 10px; margin: 0 auto 15px; background: #0d1117; border: 1px solid #30363d; display: flex; align-items: center; justify-content: center; font-size: 30px; line-height: 1;}
         .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 20px; font-weight: 600;}
         .status-pendente { background-color: rgba(210, 153, 34, 0.15); color: #d29922; border: 1px solid rgba(210, 153, 34, 0.4);}
         .status-pronto { background-color: rgba(46, 160, 67, 0.15); color: #2ea043; border: 1px solid rgba(46, 160, 67, 0.4);}
@@ -26,10 +26,11 @@
         .modal-content { background-color: #161b22; border: 1px solid #30363d; color: #c9d1d9;}
         .modal-header { border-bottom: 1px solid #30363d; }
         .modal-footer { border-top: 1px solid #30363d; }
-        .form-control { background-color: #010409; border: 1px solid #30363d; color: white; }
-        .form-control:focus { background-color: #010409; color: white; border-color: #58a6ff; box-shadow: 0 0 0 0.25rem rgba(88, 166, 255, 0.25);}
+        .form-control, .form-select { background-color: #010409; border: 1px solid #30363d; color: white; }
+        .form-control:focus, .form-select:focus { background-color: #010409; color: white; border-color: #58a6ff; box-shadow: 0 0 0 0.25rem rgba(88, 166, 255, 0.25);}
         .form-label { font-weight: 500; font-size: 14px; }
         .text-muted { color: #8b949e !important; }
+        .card-canal { background-color: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 25px; }
     </style>
 </head>
 <body>
@@ -65,338 +66,175 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
                 </div>
             <% } %>
+            <% if (error) { %>
+                <div class="alert alert-danger bg-danger bg-opacity-10 border-danger text-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> <%= error %>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
 
-            <!-- Grid de Placaformas -->
+            <!--
+              Grid e modais saem de `lojas` (afiliados.js > esquemaDeAfiliados).
+              Antes cada loja tinha o seu card e o seu modal escritos na mão:
+              acrescentar uma sexta loja significava copiar ~40 linhas de HTML e
+              lembrar de todos os campos. Agora registrar a loja no afiliados.js
+              cria a coluna no banco E a tela, de uma vez.
+            -->
             <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4">
-                
-                <!-- AliExpress -->
-                <div class="col">
-                    <div class="store-card">
-                        <img src="https://logospng.org/download/aliexpress/logo-aliexpress-icon-1024.png" class="store-logo" alt="AliExpress">
-                        <h5 class="fw-bold mb-1 text-white">AliExpress</h5>
-                        <div class="text-muted small mb-2">5 campo(s) configuráveis</div>
-                        <% if(settings.aliAffiliateTemplate || (settings.aliApiKey && settings.aliApiSecret && settings.aliTrackingId)) { %>
-                            <div class="status-badge status-pronto">Pronto</div>
-                        <% } else { %>
-                            <div class="status-badge status-pendente">Pendente</div>
-                        <% } %>
-                        <button class="btn btn-config" data-bs-toggle="modal" data-bs-target="#modalAli"><i class="bi bi-gear me-2"></i> Configurar</button>
+                <% lojas.forEach(function(loja) { %>
+                    <%
+                        // "Configurada" = qualquer campo preenchido. Simples de
+                        // propósito: a regra antiga variava por loja e ficava
+                        // dessincronizada dos campos que a tela realmente tinha.
+                        const preenchida = loja.campos.some(function(c) { return settings[c.nome]; });
+                    %>
+                    <div class="col">
+                        <div class="store-card">
+                            <div class="store-logo"><%= loja.rotulo.split(' ')[0] %></div>
+                            <h5 class="fw-bold mb-1 text-white"><%= loja.nome %></h5>
+                            <% if (preenchida) { %>
+                                <div class="status-badge status-pronto">Configurado</div>
+                            <% } else { %>
+                                <div class="status-badge status-pendente">Pendente</div>
+                            <% } %>
+                            <button class="btn btn-config" data-bs-toggle="modal" data-bs-target="#modal-<%= loja.chave %>">
+                                <i class="bi bi-gear me-2"></i> Configurar
+                            </button>
+                        </div>
                     </div>
-                </div>
+                <% }); %>
+            </div>
 
-                <!-- Amazon -->
-                <div class="col">
-                    <div class="store-card">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/de/Amazon_icon.png" class="store-logo" alt="Amazon">
-                        <h5 class="fw-bold mb-1 text-white">Amazon</h5>
-                        <div class="text-muted small mb-2">1 campo(s) configuráveis</div>
-                        <% if(settings.amazonTag) { %>
-                            <div class="status-badge status-pronto">Pronto</div>
-                        <% } else { %>
-                            <div class="status-badge status-pendente">Pendente</div>
-                        <% } %>
-                        <button class="btn btn-config" data-bs-toggle="modal" data-bs-target="#modalAmazon"><i class="bi bi-gear me-2"></i> Configurar</button>
+            <!-- ============ CANAIS DE TRANSMISSÃO ============ -->
+            <h4 class="fw-bold text-white mt-5 mb-3">Canais de transmissão</h4>
+            <div class="card-canal">
+                <form action="/settings" method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="bi bi-whatsapp text-success me-1"></i> Grupo do WhatsApp
+                            </label>
+                            <!--
+                              Lista em vez de campo livre: descobrir um JID como
+                              "120363406538141998@g.us" e digitá-lo sem errar era
+                              a parte mais fácil de errar da configuração inteira.
+                              O campo de texto continua aí para quem já tem o ID.
+                            -->
+                            <div class="input-group mb-2">
+                                <select class="form-select" id="listaGrupos" disabled>
+                                    <option>Carregando grupos…</option>
+                                </select>
+                                <button class="btn btn-outline-secondary" type="button" id="btnRecarregarGrupos" title="Recarregar">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </div>
+                            <input type="text" class="form-control" name="whatsappGroupId" id="campoGrupo"
+                                   value="<%= settings.whatsappGroupId || '' %>"
+                                   placeholder="Ex: 120363406538141998@g.us">
+                            <div class="form-text text-muted">Escolha na lista acima ou cole o ID.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="bi bi-send text-info me-1"></i> Canal / grupo do Telegram
+                            </label>
+                            <input type="text" class="form-control mb-2" name="telegramChatId"
+                                   value="<%= settings.telegramChatId || '' %>" placeholder="Ex: @MeuCanal">
+                            <label class="form-label">Token do bot do Telegram</label>
+                            <input type="password" class="form-control" name="telegramBotToken"
+                                   value="<%= settings.telegramBotToken || '' %>" placeholder="Token do @BotFather">
+                            <div class="form-text text-muted">Deixe o token como está para não alterá-lo.</div>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Mercado Livre -->
-                <div class="col">
-                    <div class="store-card">
-                        <img src="https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/5.21.22/mercadolibre/logo__small@2x.png" class="store-logo bg-warning" alt="Mercado Livre">
-                        <h5 class="fw-bold mb-1 text-white">Mercado Livre</h5>
-                        <div class="text-muted small mb-2">1 campo(s) configuráveis</div>
-                        <% if(settings.mlAffiliateLink) { %>
-                            <div class="status-badge status-pronto">Pronto</div>
-                        <% } else { %>
-                            <div class="status-badge status-pendente">Pendente</div>
-                        <% } %>
-                        <button class="btn btn-config" data-bs-toggle="modal" data-bs-target="#modalML"><i class="bi bi-gear me-2"></i> Configurar</button>
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary fw-bold px-4">Salvar canais</button>
                     </div>
-                </div>
-
-                <!-- Shopee -->
-                <div class="col">
-                    <div class="store-card">
-                        <img src="https://logospng.org/download/shopee/logo-shopee-icon-1024.png" class="store-logo" alt="Shopee">
-                        <h5 class="fw-bold mb-1 text-white">Shopee</h5>
-                        <div class="text-muted small mb-2">4 campo(s) configuráveis</div>
-                        <% if(settings.shopeeAffiliateTemplate || (settings.shopeeAppKey && settings.shopeeAppSecret)) { %>
-                            <div class="status-badge status-pronto">Pronto</div>
-                        <% } else { %>
-                            <div class="status-badge status-pendente">Pendente</div>
-                        <% } %>
-                        <button class="btn btn-config" data-bs-toggle="modal" data-bs-target="#modalShopee"><i class="bi bi-gear me-2"></i> Configurar</button>
-                    </div>
-                </div>
-
-                <!-- KaBuM! -->
-                <div class="col">
-                    <div class="store-card" style="border-bottom: 3px solid #0b2ea1;">
-                        <div class="store-logo d-flex align-items-center justify-content-center" style="background:#0b2ea1; color:#fff; font-weight:800; font-size:20px;">KB</div>
-                        <h5 class="fw-bold mb-1 text-white">KaBuM!</h5>
-                        <div class="text-muted small mb-2">2 campo(s) configuráveis</div>
-                        <% if(settings.kabumAffiliateTemplate) { %>
-                            <div class="status-badge status-pronto">Pronto</div>
-                        <% } else { %>
-                            <div class="status-badge status-pendente">Pendente</div>
-                        <% } %>
-                        <button class="btn btn-config" data-bs-toggle="modal" data-bs-target="#modalKabum"><i class="bi bi-gear me-2"></i> Configurar</button>
-                    </div>
-                </div>
-
-                <!-- Magalu -->
-                <div class="col">
-                    <div class="store-card" style="border-bottom: 3px solid #0086ff;">
-                        <img src="https://logodownload.org/wp-content/uploads/2014/10/magalu-logo-0.png" class="store-logo bg-white" alt="Magalu">
-                        <h5 class="fw-bold mb-1 text-white">Magalu</h5>
-                        <div class="text-muted small mb-2">1 campo(s) configuráveis</div>
-                        <% if(settings.magaluAffiliateLink) { %>
-                            <div class="status-badge status-pronto">Pronto</div>
-                        <% } else { %>
-                            <div class="status-badge status-pendente">Pendente</div>
-                        <% } %>
-                        <button class="btn btn-config" data-bs-toggle="modal" data-bs-target="#modalMagalu"><i class="bi bi-gear me-2"></i> Configurar</button>
-                    </div>
-                </div>
-
+                </form>
             </div>
         </main>
     </div>
 </div>
 
-<!-- ================= MODALS ================= -->
-
-<!-- Modal Amazon -->
-<div class="modal fade" id="modalAmazon" tabindex="-1">
+<!-- ================= MODAIS DAS LOJAS ================= -->
+<% lojas.forEach(function(loja) { %>
+<div class="modal fade" id="modal-<%= loja.chave %>" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <form action="/settings" method="POST">
           <div class="modal-header">
-            <h5 class="modal-title fw-bold">Configurar Amazon</h5>
+            <h5 class="modal-title fw-bold">Configurar <%= loja.nome %></h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <div class="mb-3">
-                <label class="form-label">Partner Tag (ID de Associado)</label>
-                <input type="text" class="form-control" name="amazonTag" value="<%= settings.amazonTag %>" placeholder="Ex: seunome-20">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Link ou modelo de afiliado</label>
-                <input type="text" class="form-control" name="amazonAffiliateTemplate" value="<%= settings.amazonAffiliateTemplate %>" placeholder="Opcional: deeplink com {url}">
-                <div class="text-muted small mt-2">
-                    Com <code>{url}</code> no meio, o endereço do produto entra no lugar (deeplink de rede de afiliados).
-                    Sem <code>{url}</code>, o link salvo substitui o do produto. Em branco, publica o link original da loja.
+            <% if (loja.aviso) { %>
+                <div class="alert alert-dark border-secondary small py-2">
+                    <i class="bi bi-info-circle me-1 text-info"></i> <%= loja.aviso %>
                 </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Parâmetros extras (opcional)</label>
-                <input type="text" class="form-control" name="amazonAffiliateParams" value="<%= settings.amazonAffiliateParams %>" placeholder="Ex: sub_id=grupo-whatsapp">
-            </div>
+            <% } %>
+            <% loja.campos.forEach(function(campo) { %>
+                <div class="mb-3">
+                    <label class="form-label"><%= campo.rotulo %></label>
+                    <input type="<%= campo.tipo %>" class="form-control" name="<%= campo.nome %>"
+                           value="<%= settings[campo.nome] || '' %>"
+                           placeholder="<%= campo.placeholder || '' %>">
+                    <% if (campo.ajuda) { %>
+                        <div class="form-text text-muted"><%= campo.ajuda %></div>
+                    <% } %>
+                </div>
+            <% }); %>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Gravar Depois</button>
-            <button type="submit" class="btn btn-primary">Salvar Chave</button>
-          </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Modal AliExpress -->
-<div class="modal fade" id="modalAli" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <form action="/settings" method="POST">
-          <div class="modal-header">
-            <h5 class="modal-title fw-bold">Configurar AliExpress</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-                <label class="form-label">API Key</label>
-                <input type="text" class="form-control" name="aliApiKey" value="<%= settings.aliApiKey %>">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">API Secret</label>
-                <input type="text" class="form-control" name="aliApiSecret" value="<%= settings.aliApiSecret %>">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Tracking ID</label>
-                <input type="text" class="form-control" name="aliTrackingId" value="<%= settings.aliTrackingId %>">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Link ou modelo de afiliado</label>
-                <input type="text" class="form-control" name="aliAffiliateTemplate" value="<%= settings.aliAffiliateTemplate %>" placeholder="Ex: https://s.click.aliexpress.com/deep_link.htm?dl_target_url={url}">
-                <div class="text-muted small mt-2">
-                    Com <code>{url}</code> no meio, o endereço do produto entra no lugar (deeplink de rede de afiliados).
-                    Sem <code>{url}</code>, o link salvo substitui o do produto. Em branco, publica o link original da loja.
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Parâmetros extras (opcional)</label>
-                <input type="text" class="form-control" name="aliAffiliateParams" value="<%= settings.aliAffiliateParams %>" placeholder="Ex: sub_id=grupo-whatsapp">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-            <button type="submit" class="btn btn-primary">Salvar Chaves</button>
-          </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Shopee -->
-<div class="modal fade" id="modalShopee" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <form action="/settings" method="POST">
-          <div class="modal-header">
-            <h5 class="modal-title fw-bold">Configurar Shopee</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-                <label class="form-label">App Key</label>
-                <input type="text" class="form-control" name="shopeeAppKey" value="<%= settings.shopeeAppKey %>">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">App Secret</label>
-                <input type="password" class="form-control" name="shopeeAppSecret" value="<%= settings.shopeeAppSecret %>">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Link ou modelo de afiliado</label>
-                <input type="text" class="form-control" name="shopeeAffiliateTemplate" value="<%= settings.shopeeAffiliateTemplate %>" placeholder="Ex: https://s.shopee.com.br/... ou modelo com {url}">
-                <div class="text-muted small mt-2">
-                    Com <code>{url}</code> no meio, o endereço do produto entra no lugar (deeplink de rede de afiliados).
-                    Sem <code>{url}</code>, o link salvo substitui o do produto. Em branco, publica o link original da loja.
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Parâmetros extras (opcional)</label>
-                <input type="text" class="form-control" name="shopeeAffiliateParams" value="<%= settings.shopeeAffiliateParams %>" placeholder="Ex: sub_id=grupo-whatsapp">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-            <button type="submit" class="btn btn-primary">Salvar Chaves</button>
-          </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Mercado Livre -->
-<div class="modal fade" id="modalML" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <form action="/settings" method="POST">
-          <div class="modal-header">
-            <h5 class="modal-title fw-bold">Configurar Mercado Livre</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-                <label class="form-label">Link de Afiliado</label>
-                <input type="text" class="form-control" name="mlAffiliateLink" value="<%= settings.mlAffiliateLink %>" placeholder="Cole seu link geral de afiliado do ML">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Link ou modelo de afiliado</label>
-                <input type="text" class="form-control" name="mlAffiliateTemplate" value="<%= settings.mlAffiliateTemplate %>" placeholder="Opcional: deeplink com {url}">
-                <div class="text-muted small mt-2">
-                    Com <code>{url}</code> no meio, o endereço do produto entra no lugar (deeplink de rede de afiliados).
-                    Sem <code>{url}</code>, o link salvo substitui o do produto. Em branco, publica o link original da loja.
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Parâmetros extras (opcional)</label>
-                <input type="text" class="form-control" name="mlAffiliateParams" value="<%= settings.mlAffiliateParams %>" placeholder="Ex: sub_id=grupo-whatsapp">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             <button type="submit" class="btn btn-primary">Salvar</button>
           </div>
       </form>
     </div>
   </div>
 </div>
-
-<!-- Modal Magalu -->
-<div class="modal fade" id="modalMagalu" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <form action="/settings" method="POST">
-          <div class="modal-header">
-            <h5 class="modal-title fw-bold text-primary">Configurar Magalu</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-                <label class="form-label">Seu Link Afiliado Genérico Magalu</label>
-                <input type="text" class="form-control" name="magaluAffiliateLink" value="<%= settings.magaluAffiliateLink %>" placeholder="Ex: https://www.magazinevoce.com.br/magazineSEUNOME/">
-                <div class="text-muted small mt-2">Usado como link base genérico quando postar apenas cupons ou não for possível embutir no produto.</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Link ou modelo de afiliado</label>
-                <input type="text" class="form-control" name="magaluAffiliateTemplate" value="<%= settings.magaluAffiliateTemplate %>" placeholder="Opcional: deeplink com {url}">
-                <div class="text-muted small mt-2">
-                    Com <code>{url}</code> no meio, o endereço do produto entra no lugar (deeplink de rede de afiliados).
-                    Sem <code>{url}</code>, o link salvo substitui o do produto. Em branco, publica o link original da loja.
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Parâmetros extras (opcional)</label>
-                <input type="text" class="form-control" name="magaluAffiliateParams" value="<%= settings.magaluAffiliateParams %>" placeholder="Ex: sub_id=grupo-whatsapp">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-            <button type="submit" class="btn btn-primary">Salvar</button>
-          </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Modal KaBuM! -->
-<div class="modal fade" id="modalKabum" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <form action="/settings" method="POST">
-          <div class="modal-header">
-            <h5 class="modal-title fw-bold">Configurar KaBuM!</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="alert alert-dark border-secondary small">
-                <i class="bi bi-info-circle me-1"></i>
-                O programa de afiliados da KaBuM! roda por rede (Awin/Rakuten): cole aqui o
-                deeplink que a rede gera, com <code>{url}</code> no lugar do endereço do produto.
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Link ou modelo de afiliado</label>
-                <input type="text" class="form-control" name="kabumAffiliateTemplate" value="<%= settings.kabumAffiliateTemplate %>" placeholder="Ex: https://www.awin1.com/cread.php?awinmid=00000&awinaffid=00000&ued={url}">
-                <div class="text-muted small mt-2">
-                    Com <code>{url}</code> no meio, o endereço do produto entra no lugar (deeplink de rede de afiliados).
-                    Sem <code>{url}</code>, o link salvo substitui o do produto. Em branco, publica o link original da loja.
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Parâmetros extras (opcional)</label>
-                <input type="text" class="form-control" name="kabumAffiliateParams" value="<%= settings.kabumAffiliateParams %>" placeholder="Ex: sub_id=grupo-whatsapp">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-            <button type="submit" class="btn btn-primary">Salvar</button>
-          </div>
-      </form>
-    </div>
-  </div>
-</div>
+<% }); %>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Preenche a lista de grupos do WhatsApp. Falhar aqui não pode atrapalhar:
+    // o campo de texto continua valendo e o formulário salva do mesmo jeito.
+    (async function carregarGrupos() {
+        const lista = document.getElementById('listaGrupos');
+        const campo = document.getElementById('campoGrupo');
+
+        async function carregar() {
+            lista.disabled = true;
+            lista.innerHTML = '<option>Carregando grupos…</option>';
+            try {
+                const resposta = await fetch('/api/wa-groups');
+                const dados = await resposta.json();
+
+                if (!dados.success || !dados.grupos.length) {
+                    lista.innerHTML = '<option value="">'
+                        + (dados.error || 'Nenhum grupo encontrado') + '</option>';
+                    return;
+                }
+
+                lista.innerHTML = '<option value="">— escolha um grupo —</option>';
+                for (const grupo of dados.grupos) {
+                    const opcao = document.createElement('option');
+                    opcao.value = grupo.id;
+                    opcao.textContent = grupo.nome + ' (' + grupo.participantes + ')';
+                    if (grupo.id === campo.value) opcao.selected = true;
+                    lista.appendChild(opcao);
+                }
+                lista.disabled = false;
+            } catch (err) {
+                lista.innerHTML = '<option value="">Bot indisponível</option>';
+            }
+        }
+
+        lista.addEventListener('change', function () {
+            if (lista.value) campo.value = lista.value;
+        });
+        document.getElementById('btnRecarregarGrupos').addEventListener('click', carregar);
+
+        carregar();
+    })();
+</script>
 </body>
 </html>

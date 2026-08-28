@@ -238,16 +238,47 @@ def get_bot_status():
 @app.route('/api/bot-settings', methods=['GET', 'POST'])
 @login_required
 def handle_bot_settings():
-    """Proxy para ler ou atualizar configurações de afiliados no bot."""
+    """
+    Proxy para ler ou atualizar configurações de afiliados no bot.
+
+    O GET pede `mask=1`: o token do Telegram e o App Secret da Shopee chegam
+    aqui como "••••••••" e é isso que vai para o navegador. Quem precisa do
+    segredo de verdade é o shopee_api.py, que fala com o bot direto — não
+    passa por este proxy.
+    """
     bot_url = get_active_bot_url()
     try:
         if request.method == 'POST':
             resp = requests.post(f"{bot_url}/api/bot-settings", json=request.get_json(), timeout=8, headers=bot_headers())
         else:
-            resp = requests.get(f"{bot_url}/api/bot-settings", timeout=8, headers=bot_headers())
+            resp = requests.get(f"{bot_url}/api/bot-settings", params={'mask': '1'}, timeout=8, headers=bot_headers())
         return jsonify(resp.json()), resp.status_code
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/affiliate-schema')
+@login_required
+def affiliate_schema():
+    """Lojas e campos que o bot conhece, para o painel se desenhar sozinho."""
+    bot_url = get_active_bot_url()
+    try:
+        resp = requests.get(f"{bot_url}/api/affiliate-schema", timeout=8, headers=bot_headers())
+        return jsonify(resp.json()), resp.status_code
+    except Exception as e:
+        return jsonify({'success': False, 'lojas': [], 'error': str(e)}), 500
+
+
+@app.route('/api/wa-groups')
+@login_required
+def wa_groups():
+    """Grupos do WhatsApp, para a tela oferecer uma lista em vez do JID cru."""
+    bot_url = get_active_bot_url()
+    try:
+        resp = requests.get(f"{bot_url}/api/wa-groups", timeout=15, headers=bot_headers())
+        return jsonify(resp.json()), resp.status_code
+    except Exception as e:
+        return jsonify({'success': False, 'grupos': [], 'error': str(e)}), 500
 
 @app.route('/api/publish', methods=['POST'])
 @login_required

@@ -1,15 +1,16 @@
 require('dotenv').config();
+
+// Antes de qualquer coisa que possa carregar o libsignal: ele escreve chaves
+// privadas no console e o log ia parar no pendrive. Ver log-limpo.js.
+require('./log-limpo').instalar();
+
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
-const { getSettings, updateSettings } = require('./database');
-const { construirLink, rotuloDaPlataforma, linkDaLoja } = require('./afiliados');
+const { db, getSettings, updateSettings, mascararSegredos } = require('./database');
+const { construirLink, rotuloDaPlataforma, linkDaLoja, esquemaDeAfiliados } = require('./afiliados');
 const { scrapeProduct } = require('./scraper');
-const { pino } = require('pino');
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers } = require('@whiskeysockets/baileys');
-const qrcode = require('qrcode-terminal');
-const QRCodeWeb = require('qrcode');
-const fs = require('fs');
+const { criarTransporte } = require('./transportes');
 const crypto = require('crypto');
 const session = require('express-session');
 const FormData = require('form-data');
@@ -82,98 +83,28 @@ const requireApiToken = (req, res, next) => {
     return res.status(401).json({ success: false, error: 'Token de API inválido ou ausente.' });
 };
 
-// Inicialização do WhatsApp Client com Baileys
-let sock;
-let isWhatsAppConnected = false;
-let globalQRUrl = null;
-
-const AUTH_DIR = path.join(__dirname, 'auth_info_baileys');
+// Transporte de WhatsApp. Tudo que fala com o Baileys (ou com um gateway
+// externo) mora em ./transportes; aqui só existe a interface.
+const transporte = criarTransporte({ db });
+transporte.iniciar();
 
 /**
- * Limpa as credenciais do WhatsApp sem remover a própria pasta.
+ * Normaliza o destino no formato que o WhatsApp espera.
  *
- * No Docker esse diretório é um bind mount: apagá-lo com rmSync(dir) devolve
- * EBUSY, a exceção estoura dentro do handler do Baileys e derruba o processo,
- * deixando o container em laço de restart.
+ * A heurística por tamanho vinha repetida em duas rotas: ID de grupo tem 18
+ * dígitos, telefone brasileiro com DDI tem 12 ou 13. Continua sendo heurística,
+ * mas agora existe num lugar só — e a tela de configuração passou a oferecer a
+ * lista de grupos (/api/wa-groups), então colar o JID na mão virou exceção.
  */
-function clearAuthState() {
-    try {
-        if (!fs.existsSync(AUTH_DIR)) {
-            fs.mkdirSync(AUTH_DIR, { recursive: true });
-            return;
-        }
-        for (const entry of fs.readdirSync(AUTH_DIR)) {
-            fs.rmSync(path.join(AUTH_DIR, entry), { recursive: true, force: true });
-        }
-    } catch (err) {
-        console.error('Falha ao limpar as credenciais do WhatsApp:', err.message);
-    }
+function normalizarJid(destino) {
+    const bruto = String(destino || '').trim();
+    if (!bruto) return '';
+    if (bruto.includes('@')) return bruto;
+    const somenteDigitos = bruto.replace(/\D/g, '');
+    return somenteDigitos.length > 15
+        ? `${somenteDigitos}@g.us`
+        : `${somenteDigitos}@s.whatsapp.net`;
 }
-
-async function connectToWhatsApp() {
-    fs.mkdirSync(AUTH_DIR, { recursive: true });
-    const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-    const { version, isLatest } = await fetchLatestBaileysVersion();
-    
-    sock = makeWASocket({
-        version,
-        auth: state,
-        browser: Browsers.macOS('Desktop'),
-        printQRInTerminal: false,
-        logger: require('pino')({ level: 'silent' }) // Voltando ao silencioso
-    });
-    
-    sock.ev.on('creds.update', saveCreds);
-    
-    sock.ev.on('connection.update', (update) => {
-        const { connection, lastDisconnect, qr } = update;
-        
-        if (qr) {
-            console.log('\n--- SCAN THE QR CODE BELOW TO CONNECT WHATSAPP ---');
-            qrcode.generate(qr, { small: true });
-            QRCodeWeb.toDataURL(qr, (err, url) => {
-                if (!err) globalQRUrl = url;
-            });
-        }
-        
-        if (connection === 'close') {
-            const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
-            console.log('--- WHATSAPP CONNECTION CLOSED! Reconnecting:', shouldReconnect, '---');
-            isWhatsAppConnected = false;
-            globalQRUrl = null;
-            if (shouldReconnect) {
-                scheduleReconnect(3000); // Tentar reconectar em 3 seg
-            } else {
-                // Foi deslogado do celular. Apagar credenciais antigas e reconectar.
-                clearAuthState();
-                console.log('--- SESSION DELETED. RESTARTING ---');
-                scheduleReconnect(3000);
-            }
-        } else if (connection === 'open') {
-            console.log('--- WHATSAPP BOT IS READY! ---');
-            isWhatsAppConnected = true;
-            globalQRUrl = null;
-        }
-    });
-}
-
-/**
- * Reagenda a conexão tratando a rejeição da promise.
- *
- * connectToWhatsApp() era chamado "solto": qualquer falha (rede caída na
- * subida do container, por exemplo) virava unhandled rejection e o Node 20
- * encerra o processo nesse caso.
- */
-function scheduleReconnect(delay) {
-    setTimeout(() => {
-        connectToWhatsApp().catch(err => {
-            console.error('Falha ao conectar no WhatsApp:', err.message);
-            scheduleReconnect(Math.min(delay * 2, 60000));
-        });
-    }, delay);
-}
-
-scheduleReconnect(0);
 
 // Rede instável ou API do WhatsApp fora do ar não podem derrubar o servidor
 // HTTP inteiro — sem isso o portal passa a mostrar "Bot Offline".
@@ -281,7 +212,7 @@ app.get('/', requireAuth, (req, res) => {
 // Healthcheck: sem autenticação e sem custo, usado pelo Docker e pela
 // descoberta de serviço do portal.
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', waConnected: isWhatsAppConnected });
+    res.json({ status: 'ok', waConnected: transporte.conectado });
 });
 
 /**
@@ -310,23 +241,61 @@ app.get('/api/metrics', requireApiToken, (req, res) => {
             cpuPercent: (v * 100).toFixed(1),
             memPercent: (100 - (osUtils.freememPercentage() * 100)).toFixed(1),
             appMemMB: (process.memoryUsage().rss / 1024 / 1024).toFixed(1),
-            waConnected: isWhatsAppConnected,
-            waQrUrl: globalQRUrl
+            waConnected: transporte.conectado,
+            waQrUrl: transporte.qrUrl
         });
     });
+});
+
+/**
+ * Estrutura das lojas e dos seus campos, para as telas se desenharem sozinhas.
+ *
+ * O painel do portal tinha os inputs escritos na mão: expunha 1 campo de 4 por
+ * loja e nem mostrava o Magalu. Quem configurasse por lá não tinha como chegar
+ * nos modelos de deeplink nem nos parâmetros extras. Agora a fonte é o
+ * afiliados.js, o mesmo lugar que já gerava as colunas do banco.
+ */
+app.get('/api/affiliate-schema', requireApiToken, (req, res) => {
+    res.json({ success: true, lojas: esquemaDeAfiliados() });
+});
+
+/**
+ * Grupos em que a conta do WhatsApp está, para a tela virar uma lista.
+ * Antes o usuário precisava descobrir sozinho um JID como
+ * "120363406538141998@g.us" e colar sem errar um dígito.
+ */
+app.get('/api/wa-groups', requireApiToken, async (req, res) => {
+    try {
+        if (!transporte.conectado) {
+            return res.json({ success: false, grupos: [], error: 'WhatsApp não conectado.' });
+        }
+        res.json({ success: true, grupos: await transporte.listarGrupos() });
+    } catch (err) {
+        res.status(500).json({ success: false, grupos: [], error: err.message });
+    }
 });
 
 app.get('/api/bot-settings', requireApiToken, async (req, res) => {
     try {
         const { botToken, telegramChatId, whatsappGroupId, settings } = await resolveCredentials();
+
+        const completo = {
+            ...settings,
+            telegramBotToken: botToken,
+            telegramChatId,
+            whatsappGroupId
+        };
+
+        // `?mask=1` é o que o portal usa para alimentar o navegador: o token do
+        // Telegram e o App Secret da Shopee voltam como "••••••••". Sem o
+        // parâmetro a resposta é completa, porque o shopee_api.py chama esta
+        // mesma rota server-to-server e precisa do segredo de verdade para
+        // assinar as consultas na API de afiliados.
+        const mascarar = ['1', 'true', 'sim'].includes(String(req.query.mask || '').toLowerCase());
+
         res.json({
             success: true,
-            settings: {
-                ...settings,
-                telegramBotToken: botToken,
-                telegramChatId,
-                whatsappGroupId
-            }
+            settings: mascarar ? mascararSegredos(completo) : completo
         });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
@@ -347,12 +316,14 @@ app.post('/api/bot-settings', requireApiToken, async (req, res) => {
         const updated = await resolveCredentials();
         res.json({
             success: true,
-            settings: {
+            // Sempre mascarado: quem acabou de salvar não precisa do segredo de
+            // volta, e esta resposta vai direto para o navegador.
+            settings: mascararSegredos({
                 ...updated.settings,
                 telegramBotToken: updated.botToken,
                 telegramChatId: updated.telegramChatId,
                 whatsappGroupId: updated.whatsappGroupId
-            },
+            }),
             message: 'Configurações e credenciais salvas com sucesso!'
         });
     } catch (err) {
@@ -360,23 +331,24 @@ app.post('/api/bot-settings', requireApiToken, async (req, res) => {
     }
 });
 
+// `lojas` é o que faz a tela se desenhar: cards, modais e campos saem daí.
 app.get('/settings', requireAuth, async (req, res) => {
     try {
-        const settings = await getSettings();
-        res.render('settings', { settings, success: null, error: null });
+        const settings = mascararSegredos(await getSettings());
+        res.render('settings', { settings, lojas: esquemaDeAfiliados(), success: null, error: null });
     } catch (err) {
-        res.render('settings', { settings: {}, success: null, error: 'Erro ao conectar banco de dados.' });
+        res.render('settings', { settings: {}, lojas: esquemaDeAfiliados(), success: null, error: 'Erro ao conectar banco de dados.' });
     }
 });
 
 app.post('/settings', requireAuth, async (req, res) => {
     try {
         await updateSettings(req.body);
-        const settings = await getSettings();
-        res.render('settings', { settings, success: 'Configurações salvas com sucesso!', error: null });
+        const settings = mascararSegredos(await getSettings());
+        res.render('settings', { settings, lojas: esquemaDeAfiliados(), success: 'Configurações salvas com sucesso!', error: null });
     } catch (err) {
-        const settings = await getSettings();
-        res.render('settings', { settings, success: null, error: 'Erro ao salvar configurações.' });
+        const settings = mascararSegredos(await getSettings().catch(() => ({})));
+        res.render('settings', { settings, lojas: esquemaDeAfiliados(), success: null, error: 'Erro ao salvar configurações.' });
     }
 });
 
@@ -413,7 +385,7 @@ app.post('/api/generate-preview', requireAuth, async (req, res) => {
                 },
                 config: {
                     telegram: telegramReady(credentials.botToken, credentials.telegramChatId),
-                    whatsapp: (isWhatsAppConnected && !!credentials.whatsappGroupId)
+                    whatsapp: (transporte.conectado && !!credentials.whatsappGroupId)
                 },
                 success: null,
                 error: null
@@ -461,7 +433,7 @@ app.post('/api/generate-preview', requireAuth, async (req, res) => {
             },
             config: {
                 telegram: telegramReady(credentials.botToken, credentials.telegramChatId),
-                whatsapp: (isWhatsAppConnected && !!credentials.whatsappGroupId)
+                whatsapp: (transporte.conectado && !!credentials.whatsappGroupId)
             },
             success: null,
             error: null
@@ -553,19 +525,14 @@ app.post('/api/post-deal', requireApiToken, async (req, res) => {
         }
 
         // 2. Disparo para o WhatsApp
-        if (sendWhatsApp && isWhatsAppConnected && whatsappGroupId) {
+        if (sendWhatsApp && transporte.conectado && whatsappGroupId) {
             try {
                 const whatsappText = await htmlToWhatsApp(caption);
-                let jid = whatsappGroupId;
-                if (!jid.includes('@')) {
-                    jid = jid.length > 15 ? `${jid}@g.us` : `${jid}@s.whatsapp.net`;
-                }
-
-                if (imagem_url) {
-                    await sock.sendMessage(jid, { image: { url: imagem_url }, caption: whatsappText });
-                } else {
-                    await sock.sendMessage(jid, { text: whatsappText });
-                }
+                await transporte.enviar({
+                    destino: normalizarJid(whatsappGroupId),
+                    texto: whatsappText,
+                    imagemUrl: imagem_url || null
+                });
                 results.push('WhatsApp');
             } catch (err) {
                 console.error('Erro WhatsApp:', err.message);
@@ -630,33 +597,21 @@ app.post('/api/confirm-send', requireAuth, async (req, res) => {
 
         // Envio para o WhatsApp (se marcado)
         if (sendWhatsApp === 'on') {
-            if (isWhatsAppConnected && whatsappGroupId) {
+            if (transporte.conectado && whatsappGroupId) {
                 // Formata o texto HTML para o padrão do WhatsApp (agora é async)
                 const whatsappText = await htmlToWhatsApp(caption);
-                
-                // Formatar o ID do Grupo (o Baileys exige o sufixo @g.us ou @s.whatsapp.net)
-                let jid = whatsappGroupId;
-                if (!jid.includes('@')) {
-                    jid = jid.length > 15 ? `${jid}@g.us` : `${jid}@s.whatsapp.net`;
-                }
 
-                if (photo.startsWith('data:image/')) {
-                    // Modo Cupom (Arte Base64)
-                    const base64Data = photo.replace(/^data:image\/\w+;base64,/, "");
-                    const buffer = Buffer.from(base64Data, 'base64');
-                    
-                    await sock.sendMessage(jid, { 
-                        image: buffer, 
-                        caption: whatsappText 
-                    });
-                } else {
-                    // Modo Padrão (URL)
-                    await sock.sendMessage(jid, { 
-                        image: { url: photo }, 
-                        caption: whatsappText 
-                    });
-                }
-                
+                // Arte de cupom chega em base64; a busca manda URL.
+                const ehBase64 = photo.startsWith('data:image/');
+                await transporte.enviar({
+                    destino: normalizarJid(whatsappGroupId),
+                    texto: whatsappText,
+                    imagemBuffer: ehBase64
+                        ? Buffer.from(photo.replace(/^data:image\/\w+;base64,/, ''), 'base64')
+                        : null,
+                    imagemUrl: ehBase64 ? null : photo
+                });
+
                 results.push('WhatsApp');
             } else {
                 errors.push('WhatsApp ignorado (Bot não conectado ou ID do grupo ausente)');
