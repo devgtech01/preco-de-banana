@@ -168,6 +168,11 @@
             color: #ffffff;
             font-weight: 800;
         }
+        .badge-magalu {
+            background-color: #0086ff;
+            color: #ffffff;
+            font-weight: 800;
+        }
 
         .qr-container {
             background-color: #ffffff;
@@ -318,6 +323,100 @@
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--
+          LINK DIRETO.
+
+          O portal nascia fechado na busca: publicar exigia que a oferta tivesse
+          saido de uma pesquisa. Oferta que chega por fora — indicacao de outro
+          grupo, link copiado do celular — ficava sem caminho, e colar o
+          endereco cru no WhatsApp e' justamente o que apaga a comissao. Aqui o
+          link entra, o /api/resolve-link le a pagina e aplica a regra da loja,
+          e a tela mostra o endereco afiliado ANTES de ir para o grupo.
+        -->
+        <div class="card card-custom mb-4">
+            <div class="card-body p-4">
+                <h6 class="fw-bold text-light mb-1">
+                    <i class="fa-solid fa-link text-warning me-2"></i> Publicar um link direto
+                </h6>
+                <p class="text-muted small mb-3">
+                    Cole o endere&ccedil;o do produto. O portal l&ecirc; a p&aacute;gina, aplica a sua
+                    afilia&ccedil;&atilde;o da loja e mostra o link que vai sair antes de publicar.
+                </p>
+
+                <form id="directLinkForm" class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label for="directLinkInput" class="form-label fw-bold">Link do produto:</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-muted"><i class="fa-solid fa-paste"></i></span>
+                            <input type="url" id="directLinkInput" class="form-control bg-dark text-light border-secondary" placeholder="https://www.amazon.com.br/dp/B0CX... ou shopee, ML, Magalu, KaBuM!, AliExpress" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label for="directCouponInput" class="form-label">Cupom (opcional):</label>
+                        <input type="text" id="directCouponInput" class="form-control bg-dark text-light border-secondary" placeholder="Ex: CUPOM10">
+                    </div>
+
+                    <div class="col-md-2">
+                        <label for="directDestaqueInput" class="form-label">Destaque:</label>
+                        <input type="text" id="directDestaqueInput" class="form-control bg-dark text-light border-secondary" placeholder="OFERTA IMPERD&Iacute;VEL">
+                    </div>
+
+                    <div class="col-md-2">
+                        <button type="submit" id="btnResolveLink" class="btn btn-ml w-100 py-2">
+                            <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Preparar
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Prévia: só aparece depois que a página do produto foi lida. -->
+                <div id="directLinkResult" class="d-none mt-4 pt-3 border-top border-secondary">
+                    <div class="d-flex gap-3 align-items-start flex-wrap">
+                        <img id="directLinkImg" src="" alt="Pr&eacute;via" class="product-img" style="width: 76px; height: 76px;">
+                        <div class="flex-grow-1" style="min-width: 240px;">
+                            <span id="directLinkBadge" class="badge badge-ml mb-1">Loja</span>
+                            <div id="directLinkTitle" class="fw-semibold text-light"></div>
+                            <div id="directLinkPrice" class="text-success fw-bold"></div>
+                        </div>
+                    </div>
+
+                    <div id="directLinkWarning" class="alert alert-warning py-2 px-3 mt-3 mb-0 small d-none">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                        <span id="directLinkWarningText"></span>
+                    </div>
+
+                    <label for="directAffiliateLink" class="form-label text-muted small fw-bold mt-3">Link que vai para o grupo:</label>
+                    <div class="input-group">
+                        <input type="text" id="directAffiliateLink" class="form-control bg-dark text-success border-secondary font-monospace" style="font-size: 0.85rem;" readonly>
+                        <button class="btn btn-outline-secondary" type="button" id="btnCopyAffiliate" title="Copiar link">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+
+                    <div class="row g-3 align-items-center mt-3">
+                        <div class="col-md-5 d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="directSendTelegram" checked>
+                                <label class="form-check-label small" for="directSendTelegram"><i class="fa-solid fa-paper-plane text-info me-1"></i> Telegram</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="directSendWhatsApp" checked>
+                                <label class="form-check-label small" for="directSendWhatsApp"><i class="fa-brands fa-whatsapp text-success me-1"></i> WhatsApp</label>
+                            </div>
+                        </div>
+                        <div class="col-md-7 d-flex gap-2 justify-content-md-end">
+                            <button type="button" class="btn btn-outline-light" id="btnEditDirect">
+                                <i class="fa-solid fa-pen me-1"></i> Editar antes
+                            </button>
+                            <button type="button" class="btn btn-publish px-4" id="btnPublishDirect">
+                                <i class="fa-solid fa-paper-plane me-1"></i> Publicar no grupo
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -975,7 +1074,8 @@
             amazon:       { rotulo: 'Amazon',     nomeCompleto: 'Amazon Brasil', badge: 'badge-amazon', icone: 'fa-brands fa-amazon',        botao: 'btn-outline-warning' },
             shopee:       { rotulo: 'Shopee',     nomeCompleto: 'Shopee',        badge: 'badge-shopee', icone: 'fa-solid fa-bag-shopping',   botao: 'btn-outline-danger' },
             aliexpress:   { rotulo: 'AliExpress', nomeCompleto: 'AliExpress',    badge: 'badge-ali',    icone: 'fa-solid fa-globe',          botao: 'btn-outline-danger' },
-            kabum:        { rotulo: 'KaBuM!',     nomeCompleto: 'KaBuM!',        badge: 'badge-kabum',  icone: 'fa-solid fa-microchip',      botao: 'btn-outline-primary' }
+            kabum:        { rotulo: 'KaBuM!',     nomeCompleto: 'KaBuM!',        badge: 'badge-kabum',  icone: 'fa-solid fa-microchip',      botao: 'btn-outline-primary' },
+            magalu:       { rotulo: 'Magalu',     nomeCompleto: 'Magalu',        badge: 'badge-magalu', icone: 'fa-solid fa-store',          botao: 'btn-outline-info' }
         };
 
         function identificarLoja(plataforma) {
@@ -984,12 +1084,45 @@
             if (texto.includes('shopee')) return LOJAS.shopee;
             if (texto.includes('ali')) return LOJAS.aliexpress;
             if (texto.includes('kabum')) return LOJAS.kabum;
+            if (texto.includes('magalu') || texto.includes('magazine')) return LOJAS.magalu;
             return LOJAS.mercadolivre;
+        }
+
+        /**
+         * Preço para o olho humano.
+         *
+         * A busca entrega número (1234.5) e o /api/resolve-link entrega texto
+         * já formatado ("R$ 1.234,50"), porque quem lê a página do produto lê
+         * o preço como ele está escrito lá. `toLocaleString` num texto devolve
+         * o próprio texto, então o caminho antigo escrevia "R$ R$ 1.234,50".
+         */
+        function formatarPreco(valor) {
+            if (valor === null || valor === undefined || valor === '') return '';
+            if (typeof valor === 'number') return `R$ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            return String(valor);
+        }
+
+        /** Faixa de aviso do topo, usada por todos os fluxos de publicação. */
+        function avisar(mensagem, tipo) {
+            const notif = document.getElementById('alertNotification');
+            notif.className = `alert alert-${tipo || 'info'} shadow alert-dismissible fade show my-3`;
+            document.getElementById('notificationMessage').textContent = mensagem;
+            notif.classList.remove('d-none');
         }
 
         // ABRIR POP-UP MODAL DE EDIÇÃO DO POST
         function openEditPostModal(index) {
-            const item = currentResultsData[index];
+            abrirModalComItem(currentResultsData[index]);
+        }
+
+        /**
+         * Abre o editor para uma oferta qualquer.
+         *
+         * Antes o modal só sabia ler `currentResultsData[index]`, o que amarrava
+         * a edição ao resultado de uma busca. O link colado à mão não tem índice
+         * nenhum, então o que ele precisa é entregar o item direto.
+         */
+        function abrirModalComItem(item) {
             if (!item) return;
 
             activeEditItem = { ...item };
@@ -1003,8 +1136,8 @@
             document.getElementById('postEditTitleHead').textContent = item.titulo || 'Produto';
 
             document.getElementById('postEditTitle').value = item.titulo || '';
-            document.getElementById('postEditPrice').value = item.preco ? `R$ ${item.preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : '';
-            document.getElementById('postEditOriginalPrice').value = item.preco_original ? `R$ ${item.preco_original.toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : '';
+            document.getElementById('postEditPrice').value = formatarPreco(item.preco);
+            document.getElementById('postEditOriginalPrice').value = formatarPreco(item.preco_original);
             document.getElementById('postEditDestaque').value = item.destaque || 'OFERTA IMPERDÍVEL';
             document.getElementById('postEditCoupon').value = item.cupom || '';
             document.getElementById('postEditLink').value = item.link || '';
@@ -1057,6 +1190,10 @@
                     link: document.getElementById('postEditLink').value,
                     imagem_url: document.getElementById('postEditImg').src,
                     plataforma: activeEditItem ? activeEditItem.plataforma : 'Mercado Livre',
+                    // Oferta que veio do /api/resolve-link já traz o endereço
+                    // afiliado pronto; avisar o bot evita que ele aplique a
+                    // regra da loja duas vezes sobre o mesmo link.
+                    link_afiliado: (activeEditItem && activeEditItem.link_afiliado) || '',
                     caption: document.getElementById('postEditCaption').value,
                     sendTelegram: document.getElementById('postSendTelegram').checked,
                     sendWhatsApp: document.getElementById('postSendWhatsApp').checked
@@ -1088,6 +1225,163 @@
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = origHtml;
+            }
+        });
+
+        // ============================================================
+        //  LINK DIRETO
+        //  colar -> ler a página -> aplicar afiliação -> publicar
+        // ============================================================
+
+        // A oferta preparada pelo campo de link, à espera de ir para o grupo.
+        let ofertaDeLinkDireto = null;
+
+        function mostrarOfertaDeLinkDireto(dados) {
+            const loja = identificarLoja(dados.plataforma);
+
+            const badge = document.getElementById('directLinkBadge');
+            badge.className = `badge ${loja.badge} mb-1`;
+            badge.textContent = loja.nomeCompleto;
+
+            const img = document.getElementById('directLinkImg');
+            img.src = dados.imagem_url || '';
+            img.classList.toggle('d-none', !dados.imagem_url);
+
+            document.getElementById('directLinkTitle').textContent = dados.titulo || 'Produto';
+
+            const preco = formatarPreco(dados.preco);
+            const antigo = formatarPreco(dados.preco_original);
+            document.getElementById('directLinkPrice').textContent =
+                antigo && antigo !== preco ? `${preco}  (antes ${antigo})` : preco;
+
+            document.getElementById('directAffiliateLink').value = dados.link_afiliado || dados.link || '';
+
+            // O aviso é o ponto todo da tela: sem ele o usuário só descobre que
+            // esqueceu de configurar a loja quando a comissão não aparece.
+            const aviso = document.getElementById('directLinkWarning');
+            if (dados.afiliado_configurado) {
+                aviso.classList.add('d-none');
+            } else {
+                document.getElementById('directLinkWarningText').textContent =
+                    `${loja.nomeCompleto} está sem afiliação configurada: este link vai sair igual ao original, sem comissão. `
+                    + 'Preencha a loja em "Integrador de Afiliados" logo acima e prepare o link de novo.';
+                aviso.classList.remove('d-none');
+            }
+
+            document.getElementById('directLinkResult').classList.remove('d-none');
+        }
+
+        document.getElementById('directLinkForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('btnResolveLink');
+            const htmlOriginal = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Lendo...';
+
+            document.getElementById('alertError').classList.add('d-none');
+
+            try {
+                const res = await fetch('/api/resolve-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ link: document.getElementById('directLinkInput').value.trim() })
+                });
+                const dados = await res.json();
+
+                if (!dados.success) {
+                    document.getElementById('directLinkResult').classList.add('d-none');
+                    ofertaDeLinkDireto = null;
+                    document.getElementById('errorMessage').textContent = dados.error || 'Não foi possível ler este link.';
+                    document.getElementById('alertError').classList.remove('d-none');
+                    return;
+                }
+
+                // O item sai no mesmo formato que a tabela da busca produz, para
+                // o editor e o /api/publish não precisarem saber de onde veio.
+                // `link` já é o endereço afiliado: é ele que a legenda escreve
+                // no <a href>, e `link_afiliado` diz ao bot que a regra da loja
+                // já foi aplicada — reaplicar embrulharia um deeplink no outro.
+                ofertaDeLinkDireto = {
+                    titulo: dados.titulo,
+                    preco: dados.preco,
+                    preco_original: dados.preco_original,
+                    imagem_url: dados.imagem_url,
+                    plataforma: dados.plataforma,
+                    link: dados.link_afiliado,
+                    link_afiliado: dados.link_afiliado,
+                    cupom: document.getElementById('directCouponInput').value.trim(),
+                    destaque: document.getElementById('directDestaqueInput').value.trim()
+                };
+
+                mostrarOfertaDeLinkDireto(dados);
+            } catch (err) {
+                document.getElementById('errorMessage').textContent = 'Erro ao ler o link: ' + err.message;
+                document.getElementById('alertError').classList.remove('d-none');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = htmlOriginal;
+            }
+        });
+
+        document.getElementById('btnCopyAffiliate').addEventListener('click', function () {
+            const campo = document.getElementById('directAffiliateLink');
+            campo.select();
+            // O clipboard moderno exige contexto seguro; no modo portátil o
+            // portal roda em localhost, mas execCommand cobre o resto.
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(campo.value).catch(function () { document.execCommand('copy'); });
+            } else {
+                document.execCommand('copy');
+            }
+            avisar('Link de afiliado copiado.', 'info');
+        });
+
+        document.getElementById('btnEditDirect').addEventListener('click', function () {
+            if (!ofertaDeLinkDireto) return;
+            ofertaDeLinkDireto.cupom = document.getElementById('directCouponInput').value.trim();
+            ofertaDeLinkDireto.destaque = document.getElementById('directDestaqueInput').value.trim();
+            abrirModalComItem(ofertaDeLinkDireto);
+        });
+
+        document.getElementById('btnPublishDirect').addEventListener('click', async function () {
+            if (!ofertaDeLinkDireto) return;
+
+            const btn = this;
+            const htmlOriginal = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Enviando...';
+
+            try {
+                // Sem `caption`: a legenda padrão é montada pelo bot, que é quem
+                // conhece o rótulo da loja e o link final.
+                const payload = Object.assign({}, ofertaDeLinkDireto, {
+                    cupom: document.getElementById('directCouponInput').value.trim(),
+                    destaque: document.getElementById('directDestaqueInput').value.trim(),
+                    sendTelegram: document.getElementById('directSendTelegram').checked,
+                    sendWhatsApp: document.getElementById('directSendWhatsApp').checked
+                });
+
+                const res = await fetch('/api/publish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    avisar(`Link publicado! (${data.message})`, 'success');
+                    document.getElementById('directLinkForm').reset();
+                    document.getElementById('directLinkResult').classList.add('d-none');
+                    ofertaDeLinkDireto = null;
+                } else {
+                    avisar('Não foi publicado: ' + (data.error || data.message), 'danger');
+                }
+            } catch (err) {
+                avisar('Erro ao publicar: ' + err.message, 'danger');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = htmlOriginal;
             }
         });
 

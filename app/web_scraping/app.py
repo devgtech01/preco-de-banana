@@ -280,6 +280,31 @@ def wa_groups():
     except Exception as e:
         return jsonify({'success': False, 'grupos': [], 'error': str(e)}), 500
 
+@app.route('/api/resolve-link', methods=['POST'])
+@login_required
+def resolve_link():
+    """
+    Link colado a mao -> oferta pronta, com o endereco de afiliado aplicado.
+
+    A busca continua sendo o caminho normal, mas oferta que chega por fora
+    (indicacao de outro grupo, link do proprio celular) nao tinha por onde
+    passar pelo afiliado antes de ir para o grupo. Quem raspa a pagina e aplica
+    a regra da loja e o bot, que e o dono do settings.db: aqui so repassamos.
+    """
+    bot_url = get_active_bot_url()
+    try:
+        resp = requests.post(
+            f"{bot_url}/api/resolve-link",
+            json=request.get_json() or {},
+            timeout=30,
+            headers=bot_headers()
+        )
+        return jsonify(resp.json()), resp.status_code
+    except requests.exceptions.ConnectionError:
+        return jsonify({'success': False, 'error': f'Servidor do Bot ({bot_url}) nao respondeu.'}), 503
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/publish', methods=['POST'])
 @login_required
 def publish_deal():
