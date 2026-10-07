@@ -73,6 +73,31 @@ LOJAS QUE O PROGRAMA BUSCA
  para os links /sec/ do Mercado Livre e magazinevoce do Magalu.
 
 
+PUBLICAR UM LINK QUE VOCE JA TEM EM MAOS
+----------------------------------------
+ Nem toda oferta aparece na busca. Quando o link chega por fora - indicacao de
+ outro grupo, promocao que voce viu no celular - use o campo "Publicar um link
+ direto", logo acima do formulario de busca no portal.
+
+ Cole o endereco e clique em Preparar. O programa abre a pagina, pega titulo,
+ preco e foto, aplica a afiliacao daquela loja e mostra o resultado antes de
+ publicar. Dai voce escolhe:
+
+   * Publicar no grupo   - manda com a legenda padrao.
+   * Editar antes        - abre o editor de legenda, igual ao da busca.
+
+ O campo verde "Link que vai para o grupo" e' o endereco de verdade que sera
+ publicado. Confira ele: se a loja nao tiver afiliacao configurada, aparece um
+ aviso amarelo dizendo que o link vai sair sem comissao. Isso NAO impede a
+ publicacao - so avisa, para voce nao descobrir o esquecimento semanas depois.
+
+ Uma pegadinha que o aviso pega: o campo "Link fixo" nao vale para link de
+ produto. Divulgando um produto especifico, trocar o endereco pelo seu link
+ geral apagaria justamente o produto, entao o programa nao faz isso - e avisa
+ que o link esta saindo cru. Para monetizar produto nessas lojas, use o campo
+ "Modelo" com {url} no meio (deeplink), nao o "Link fixo".
+
+
 SEM SENHA (e por que isso e' seguro aqui)
 -----------------------------------------
  O portal abre direto, sem tela de login. Rodando so nesta maquina, a senha

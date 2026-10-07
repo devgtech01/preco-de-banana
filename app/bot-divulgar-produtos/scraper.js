@@ -8,6 +8,44 @@ const CABECALHOS_NAVEGADOR = {
     'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7'
 };
 
+/**
+ * Endereço final confiável de uma resposta.
+ *
+ * O `responseUrl` é o endereço onde a requisição parou, e parar não é o mesmo
+ * que chegar: o Mercado Livre às vezes intercepta com uma tela de verificação
+ * (/gz/account-verification?go=…) e a Magalu com /az-request-verify?url=…
+ * Tomar esse endereço como o do produto põe a tela de verificação no grupo em
+ * lugar da oferta — o link vira lixo para quem clica, e a comissão morre com
+ * ele. O destino verdadeiro costuma estar no próprio parâmetro da interstitial;
+ * quando não está, o link que o usuário colou é a melhor resposta disponível.
+ *
+ * A lista de marcas é curta de propósito. Um "contém /verify" genérico casaria
+ * com nome de produto na URL e descartaria a expansão de encurtador (o amzn.to
+ * que vira amazon.com.br, de onde sai a tag), trocando um erro raro por um
+ * frequente.
+ */
+const INTERSTICIAIS = [
+    { marca: '/gz/account-verification', parametro: 'go' },
+    { marca: 'az-request-verify', parametro: 'url' }
+];
+
+function enderecoFinal(original, resolvido) {
+    const alvo = String(resolvido || '').trim() || original;
+    const baixo = alvo.toLowerCase();
+
+    const barreira = INTERSTICIAIS.find(i => baixo.includes(i.marca));
+    if (!barreira) return alvo;
+
+    try {
+        const destino = new URL(alvo).searchParams.get(barreira.parametro);
+        if (destino && /^https?:\/\//i.test(destino)) return destino;
+    } catch (e) {
+        // URL impronunciável: cai no link original logo abaixo.
+    }
+
+    return original;
+}
+
 function emReais(valor) {
     return `R$ ${Number(valor).toFixed(2).replace('.', ',')}`;
 }
@@ -24,7 +62,7 @@ async function scrapeAmazon(url, affiliateTag) {
         });
         
         // PEGAR A URL FINAL RESOLVIDA (Isso resolve o problema de links amzn.to curtos que não aceitavam tag)
-        const finalUrl = response.request.res.responseUrl || url;
+        const finalUrl = enderecoFinal(url, response.request.res.responseUrl);
         
         const $ = cheerio.load(response.data);
         
@@ -98,7 +136,7 @@ async function scrapeML(url) {
             timeout: 10000,
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
         });
-        const finalUrl = response.request.res.responseUrl || url;
+        const finalUrl = enderecoFinal(url, response.request.res.responseUrl);
         const $ = cheerio.load(response.data);
         
         // Tenta pegar o H1 que é muito mais limpo no ML
@@ -134,7 +172,7 @@ async function scrapeShopeeAli(url, storeName) {
             timeout: 10000,
             headers: { 'User-Agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)' } 
         });
-        const finalUrl = response.request.res.responseUrl || url;
+        const finalUrl = enderecoFinal(url, response.request.res.responseUrl);
         const $ = cheerio.load(response.data);
         
         let title = $('meta[property="og:title"]').attr('content') || `Oferta ${storeName}`;
@@ -175,7 +213,7 @@ async function scrapeMagalu(url) {
                 'Sec-Fetch-Mode': 'navigate'
             } 
         });
-        const finalUrl = response.request.res.responseUrl || url;
+        const finalUrl = enderecoFinal(url, response.request.res.responseUrl);
         const $ = cheerio.load(response.data);
         
         let title = $('title').text().replace(/ - Magazine.*/, '').trim() || $('meta[property="og:title"]').attr('content') || 'Produto Magalu';
@@ -217,7 +255,7 @@ async function scrapeMagalu(url) {
 async function scrapeKabum(url) {
     try {
         const response = await axios.get(url, { timeout: 10000, headers: CABECALHOS_NAVEGADOR });
-        const finalUrl = response.request.res.responseUrl || url;
+        const finalUrl = enderecoFinal(url, response.request.res.responseUrl);
         const $ = cheerio.load(response.data);
 
         let title = ($('meta[property="og:title"]').attr('content') || '')

@@ -8,7 +8,7 @@ const express = require('express');
 const axios = require('axios');
 const path = require('path');
 const { db, getSettings, updateSettings, mascararSegredos } = require('./database');
-const { construirLink, rotuloDaPlataforma, linkDaLoja, esquemaDeAfiliados } = require('./afiliados');
+const { construirLink, rotuloDaPlataforma, linkDaLoja, esquemaDeAfiliados, linkSaiAfiliado } = require('./afiliados');
 const { scrapeProduct } = require('./scraper');
 const { criarTransporte } = require('./transportes');
 const crypto = require('crypto');
@@ -444,6 +444,57 @@ app.post('/api/generate-preview', requireAuth, async (req, res) => {
     }
 });
 
+/**
+ * Lê um link colado à mão e devolve a oferta pronta para publicar.
+ *
+ * O portal só sabia publicar o que tinha vindo da busca: quem recebia uma
+ * oferta por fora — print de outro grupo, link do próprio celular — não tinha
+ * por onde passar pelo afiliado. Esta rota é o caminho desse link: raspa o
+ * produto (título, preço, imagem), aplica a regra da loja e devolve as DUAS
+ * pontas — o endereço original e o afiliado — para a tela mostrar o que vai
+ * sair antes de ir ao grupo.
+ *
+ * `afiliado_configurado` responde a pergunta que importa: esse link sai
+ * monetizado ou cru? Sem ele o esquecimento de configurar a loja só aparece
+ * na comissão que não veio.
+ */
+app.post('/api/resolve-link', requireApiToken, async (req, res) => {
+    const alvo = String((req.body || {}).link || '').trim();
+
+    if (!/^https?:\/\//i.test(alvo)) {
+        return res.status(400).json({ success: false, error: 'Cole um link completo, começando com http:// ou https://.' });
+    }
+
+    try {
+        const { settings } = await resolveCredentials();
+        const dados = await scrapeProduct(alvo, settings);
+
+        return res.json({
+            success: true,
+            titulo: dados.title,
+            preco: dados.price,
+            preco_original: dados.originalPrice || '',
+            imagem_url: dados.image || '',
+            plataforma: dados.store,
+            rotulo: rotuloDaPlataforma(dados.store, dados.affiliateUrl),
+            link_original: alvo,
+            // `link` e `link_afiliado` saem iguais de propósito: a tela usa o
+            // primeiro para montar a legenda e o segundo para avisar o
+            // /api/post-deal de que a afiliação já foi aplicada aqui — passar
+            // de novo pelo construirLink embrulharia um deeplink dentro do
+            // outro.
+            link: dados.affiliateUrl,
+            link_afiliado: dados.affiliateUrl,
+            // O mesmo `permitirLinkFixo: false` que o scrapeProduct usa: a
+            // resposta tem de valer para o link que realmente foi montado.
+            afiliado_configurado: linkSaiAfiliado(dados.store, alvo, settings, { permitirLinkFixo: false })
+        });
+    } catch (err) {
+        console.error('Erro no /api/resolve-link:', err.message);
+        return res.status(400).json({ success: false, error: err.message });
+    }
+});
+
 // Endpoint para receber ofertas diretamente da aplicação web_scraping
 app.post('/api/post-deal', requireApiToken, async (req, res) => {
     try {
@@ -456,6 +507,7 @@ app.post('/api/post-deal', requireApiToken, async (req, res) => {
             link,
             imagem_url,
             plataforma,
+            link_afiliado,
             sendTelegram = true,
             sendWhatsApp = true,
             whatsappGroup
@@ -472,7 +524,12 @@ app.post('/api/post-deal', requireApiToken, async (req, res) => {
         // Link de afiliado conforme a configuração da loja (ver afiliados.js).
         // Sem nada configurado, o link do produto segue intacto — vale para as
         // cinco lojas da busca, não só para Amazon e Mercado Livre.
-        const affiliateUrl = construirLink(plataforma, link, settings);
+        //
+        // `link_afiliado` é o atalho de quem já passou pelo /api/resolve-link:
+        // o link chega pronto e reaplicar a regra embrulharia um deeplink
+        // dentro do outro (o {url} de um modelo codificando um endereço que já
+        // era de afiliado).
+        const affiliateUrl = String(link_afiliado || '').trim() || construirLink(plataforma, link, settings);
 
         // Formata preços
         const priceStr = typeof preco === 'number' ? `R$ ${preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : (preco || 'Confira');
@@ -492,8 +549,20 @@ app.post('/api/post-deal', requireApiToken, async (req, res) => {
         const safeTitle = titulo.replace(/[<>]/g, '');
         const platTag = rotuloDaPlataforma(plataforma, link);
 
-        // Legenda em HTML
-        let caption = req.body.caption || `${destaqueText}🏷️ <b>${platTag}</b>\n📦 ${safeTitle}\n\n${priceText}\n${couponText}\n🛒 <b>Compre aqui:</b> <a href="${affiliateUrl}">Link do Desconto</a>`;
+        // Legenda em HTML.
+        //
+        // Quando a tela manda a legenda já montada, ela escreveu o <a href>
+        // com o link que tinha em mãos — o endereço cru do produto. Era por
+        // aí que a afiliação se perdia: o affiliateUrl calculado acima ficava
+        // sem uso e o grupo recebia o link sem comissão. Trocar o endereço
+        // dentro do texto preserva as edições do usuário e corrige o destino.
+        let caption = req.body.caption;
+        if (caption && link && affiliateUrl !== link) {
+            caption = caption.split(link).join(affiliateUrl);
+        }
+        if (!caption) {
+            caption = `${destaqueText}🏷️ <b>${platTag}</b>\n📦 ${safeTitle}\n\n${priceText}\n${couponText}\n🛒 <b>Compre aqui:</b> <a href="${affiliateUrl}">Link do Desconto</a>`;
+        }
 
         let results = [];
         let errors = [];
@@ -527,7 +596,7 @@ app.post('/api/post-deal', requireApiToken, async (req, res) => {
         // 2. Disparo para o WhatsApp
         if (sendWhatsApp && transporte.conectado && whatsappGroupId) {
             try {
-                const whatsappText = await htmlToWhatsApp(caption);
+                const whatsappText = htmlToWhatsApp(caption);
                 await transporte.enviar({
                     destino: normalizarJid(whatsappGroupId),
                     texto: whatsappText,
@@ -598,8 +667,8 @@ app.post('/api/confirm-send', requireAuth, async (req, res) => {
         // Envio para o WhatsApp (se marcado)
         if (sendWhatsApp === 'on') {
             if (transporte.conectado && whatsappGroupId) {
-                // Formata o texto HTML para o padrão do WhatsApp (agora é async)
-                const whatsappText = await htmlToWhatsApp(caption);
+                // Formata o texto HTML para o padrão do WhatsApp.
+                const whatsappText = htmlToWhatsApp(caption);
 
                 // Arte de cupom chega em base64; a busca manda URL.
                 const ehBase64 = photo.startsWith('data:image/');
@@ -628,29 +697,36 @@ app.post('/api/confirm-send', requireAuth, async (req, res) => {
     }
 });
 
-// Função para encurtar links via TinyURL (para o WhatsApp ficar limpo)
-async function shortenUrl(url) {
-    try {
-        const response = await axios.get(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
-        return response.data;
-    } catch (e) {
-        return url; // Retorna original se falhar
-    }
-}
-
-// Helper para converter HTML para formatação do WhatsApp
-async function htmlToWhatsApp(html) {
+/**
+ * Converte o HTML da legenda para a formatação do WhatsApp.
+ *
+ * Aqui existia um encurtador: cada link passava pelo tinyurl.com antes de ir
+ * para o grupo, com a justificativa de "deixar o WhatsApp limpo". Trocar o
+ * endereço da oferta por um tinyurl.com/29y3qmlp custa caro de quatro formas:
+ *
+ *   1. Quem recebe não vê para onde vai. "amazon.com.br" é a credencial da
+ *      mensagem; encurtador anônimo é o que golpe também usa, e o leitor
+ *      desconfia com razão.
+ *   2. O TinyURL vira ponto único de falha. Se o serviço sai do ar, muda de
+ *      política ou derruba o link, a oferta morre — e ela já está publicada no
+ *      grupo, sem como corrigir.
+ *   3. Parte das redes de afiliado não credita comissão atravessando um salto
+ *      a mais. Todo o trabalho do afiliados.js pode ser perdido no último
+ *      metro, sem aviso nenhum: a venda acontece e a comissão não.
+ *   4. O antispam do WhatsApp olha encurtador com mais suspeita que domínio de
+ *      loja, e este número já corre risco por postar promoção em grupo.
+ *
+ * Então o link vai inteiro. O endereço de afiliado já é o endereço certo.
+ *
+ * De passagem, o `replace` global usava o link do PRIMEIRO <a> para todas as
+ * âncoras: uma legenda com dois links diferentes mandava os dois para o mesmo
+ * destino. Agora cada âncora leva o seu próprio href (`$1`).
+ */
+function htmlToWhatsApp(html) {
     if (!html) return '';
-    
-    // 1. Extrai o link original do <a> para encurtar
-    let finalHtml = html;
-    const linkMatch = html.match(/<a href="(.*?)">.*?<\/a>/);
-    if (linkMatch && linkMatch[1]) {
-        const short = await shortenUrl(linkMatch[1]);
-        finalHtml = html.replace(/<a href="(.*?)">(.*?)<\/a>/g, `$2:\n${short}`);
-    }
 
-    return finalHtml
+    return html
+        .replace(/<a href="(.*?)">(.*?)<\/a>/g, '$2:\n$1')
         .replace(/<b>(.*?)<\/b>/g, '*$1*')        // Negrito
         .replace(/<strong>(.*?)<\/strong>/g, '*$1*')
         .replace(/<s>(.*?)<\/s>/g, '~$1~')         // Riscado

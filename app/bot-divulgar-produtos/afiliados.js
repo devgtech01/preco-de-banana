@@ -261,6 +261,36 @@ function construirLink(plataforma, url, settings = {}, opcoes = {}) {
     return comParametros(final, campo(settings, info.campoParametros));
 }
 
+/**
+ * O link que vai sair está monetizado?
+ *
+ * Nasceu do campo de link direto do portal: colar um endereço e publicar sem
+ * saber se ele sai com comissão é descobrir o esquecimento semanas depois, no
+ * extrato que não mexeu.
+ *
+ * A tentação é responder olhando se a loja tem campo preenchido, e essa
+ * resposta mente no caso mais comum. O link fixo do Mercado Livre pode estar
+ * salvo e ainda assim NÃO entrar: diante da página de um produto específico,
+ * `permitirLinkFixo: false` o descarta de propósito, para não trocar a oferta
+ * pela home da loja. Dizer "configurado" ali é exatamente o silêncio que esta
+ * checagem existe para evitar.
+ *
+ * Então a resposta é empírica, e sai do próprio `construirLink` em vez de
+ * repetir as suas regras: monta o link com a configuração inteira e monta de
+ * novo com SÓ os parâmetros extras. Se os dois são iguais, nenhuma regra de
+ * monetização entrou — os parâmetros (sub_id, utm_source) rastreiam, não pagam.
+ */
+function linkSaiAfiliado(plataforma, url, settings = {}, opcoes = {}) {
+    const encontrado = identificar(plataforma, url);
+    if (!encontrado) return false;
+
+    const { info } = encontrado;
+    if (linkJaAfiliado(url, info)) return true;
+
+    const soParametros = { [info.campoParametros]: campo(settings, info.campoParametros) };
+    return construirLink(plataforma, url, settings, opcoes) !== construirLink(plataforma, url, soParametros, opcoes);
+}
+
 /** Rótulo com emoji usado na legenda da promoção. */
 function rotuloDaPlataforma(plataforma, url) {
     const encontrado = identificar(plataforma, url);
@@ -352,5 +382,6 @@ module.exports = {
     camposSecretos,
     esquemaDeAfiliados,
     linkJaAfiliado,
-    identificar
+    identificar,
+    linkSaiAfiliado
 };
