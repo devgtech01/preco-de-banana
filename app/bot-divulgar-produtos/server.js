@@ -596,7 +596,7 @@ app.post('/api/post-deal', requireApiToken, async (req, res) => {
         // 2. Disparo para o WhatsApp
         if (sendWhatsApp && transporte.conectado && whatsappGroupId) {
             try {
-                const whatsappText = await htmlToWhatsApp(caption);
+                const whatsappText = htmlToWhatsApp(caption);
                 await transporte.enviar({
                     destino: normalizarJid(whatsappGroupId),
                     texto: whatsappText,
@@ -667,8 +667,8 @@ app.post('/api/confirm-send', requireAuth, async (req, res) => {
         // Envio para o WhatsApp (se marcado)
         if (sendWhatsApp === 'on') {
             if (transporte.conectado && whatsappGroupId) {
-                // Formata o texto HTML para o padrão do WhatsApp (agora é async)
-                const whatsappText = await htmlToWhatsApp(caption);
+                // Formata o texto HTML para o padrão do WhatsApp.
+                const whatsappText = htmlToWhatsApp(caption);
 
                 // Arte de cupom chega em base64; a busca manda URL.
                 const ehBase64 = photo.startsWith('data:image/');
@@ -697,29 +697,36 @@ app.post('/api/confirm-send', requireAuth, async (req, res) => {
     }
 });
 
-// Função para encurtar links via TinyURL (para o WhatsApp ficar limpo)
-async function shortenUrl(url) {
-    try {
-        const response = await axios.get(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
-        return response.data;
-    } catch (e) {
-        return url; // Retorna original se falhar
-    }
-}
-
-// Helper para converter HTML para formatação do WhatsApp
-async function htmlToWhatsApp(html) {
+/**
+ * Converte o HTML da legenda para a formatação do WhatsApp.
+ *
+ * Aqui existia um encurtador: cada link passava pelo tinyurl.com antes de ir
+ * para o grupo, com a justificativa de "deixar o WhatsApp limpo". Trocar o
+ * endereço da oferta por um tinyurl.com/29y3qmlp custa caro de quatro formas:
+ *
+ *   1. Quem recebe não vê para onde vai. "amazon.com.br" é a credencial da
+ *      mensagem; encurtador anônimo é o que golpe também usa, e o leitor
+ *      desconfia com razão.
+ *   2. O TinyURL vira ponto único de falha. Se o serviço sai do ar, muda de
+ *      política ou derruba o link, a oferta morre — e ela já está publicada no
+ *      grupo, sem como corrigir.
+ *   3. Parte das redes de afiliado não credita comissão atravessando um salto
+ *      a mais. Todo o trabalho do afiliados.js pode ser perdido no último
+ *      metro, sem aviso nenhum: a venda acontece e a comissão não.
+ *   4. O antispam do WhatsApp olha encurtador com mais suspeita que domínio de
+ *      loja, e este número já corre risco por postar promoção em grupo.
+ *
+ * Então o link vai inteiro. O endereço de afiliado já é o endereço certo.
+ *
+ * De passagem, o `replace` global usava o link do PRIMEIRO <a> para todas as
+ * âncoras: uma legenda com dois links diferentes mandava os dois para o mesmo
+ * destino. Agora cada âncora leva o seu próprio href (`$1`).
+ */
+function htmlToWhatsApp(html) {
     if (!html) return '';
-    
-    // 1. Extrai o link original do <a> para encurtar
-    let finalHtml = html;
-    const linkMatch = html.match(/<a href="(.*?)">.*?<\/a>/);
-    if (linkMatch && linkMatch[1]) {
-        const short = await shortenUrl(linkMatch[1]);
-        finalHtml = html.replace(/<a href="(.*?)">(.*?)<\/a>/g, `$2:\n${short}`);
-    }
 
-    return finalHtml
+    return html
+        .replace(/<a href="(.*?)">(.*?)<\/a>/g, '$2:\n$1')
         .replace(/<b>(.*?)<\/b>/g, '*$1*')        // Negrito
         .replace(/<strong>(.*?)<\/strong>/g, '*$1*')
         .replace(/<s>(.*?)<\/s>/g, '~$1~')         // Riscado
