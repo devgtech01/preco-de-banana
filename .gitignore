@@ -10,6 +10,9 @@ logs/
 *.log
 *.tmp
 *.temp
+data/*.json
+data/*.csv
+!data/.gitkeep
 
 # Python cache
 __pycache__/

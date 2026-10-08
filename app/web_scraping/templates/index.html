@@ -174,6 +174,53 @@
             font-weight: 800;
         }
 
+        .category-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            background-color: #16203a;
+            border: 1px solid var(--border-color);
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            text-decoration: none;
+        }
+        .category-pill:hover {
+            background-color: #22325c;
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 230, 0, 0.15);
+        }
+        .category-pill.active {
+            background: linear-gradient(135deg, #e6ce00 0%, #ffe600 100%);
+            border-color: #ffe600;
+            color: #0f172a;
+            box-shadow: 0 4px 15px rgba(255, 230, 0, 0.35);
+        }
+
+        .badge-discount-tag {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            font-weight: 700;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .badge-original-price {
+            text-decoration: line-through;
+            color: #94a3b8;
+            font-size: 0.82rem;
+            margin-right: 4px;
+        }
+
         .qr-container {
             background-color: #ffffff;
             border-radius: 12px;
@@ -418,6 +465,63 @@
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BUSCA ESPECIALIZADA POR CATEGORIAS (FOCO EM TECNOLOGIA) -->
+        <div class="card card-custom mb-4 border-warning border-opacity-25 shadow">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div>
+                        <h6 class="fw-bold text-light mb-1">
+                            <i class="fa-solid fa-microchip text-warning me-2"></i> Busca por Categorias (Prioridade: Tecnologia)
+                        </h6>
+                        <p class="text-muted small mb-0">
+                            Pesquise os principais produtos por categoria em todos os marketplaces e exporte com valor de antes e depois.
+                        </p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-ml btn-sm fw-bold px-3 py-2" onclick="buscarCategoriaAtiva()" id="btnBuscarCategoria">
+                            <i class="fa-solid fa-bolt me-1"></i> Buscar Categoria Agora
+                        </button>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2" id="categoriesPillsContainer">
+                    <button type="button" class="category-pill active" data-categoria="tecnologia" onclick="selecionarCategoria(this, 'tecnologia')">
+                        <span>💻</span> Tecnologia Geral
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="notebooks" onclick="selecionarCategoria(this, 'notebooks')">
+                        <span>💻</span> Notebooks & PCs
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="smartphones" onclick="selecionarCategoria(this, 'smartphones')">
+                        <span>📱</span> Smartphones 5G
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="hardware" onclick="selecionarCategoria(this, 'hardware')">
+                        <span>⚡</span> Hardware & Placas
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="perifericos" onclick="selecionarCategoria(this, 'perifericos')">
+                        <span>⌨️</span> Periféricos & Monitores
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="games" onclick="selecionarCategoria(this, 'games')">
+                        <span>🎮</span> Games & Consoles
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="audio" onclick="selecionarCategoria(this, 'audio')">
+                        <span>🎧</span> Áudio & Fones
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="smart_home" onclick="selecionarCategoria(this, 'smart_home')">
+                        <span>🏠</span> Casa Inteligente
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="wearables" onclick="selecionarCategoria(this, 'wearables')">
+                        <span>⌚</span> Smartwatches
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="tablets" onclick="selecionarCategoria(this, 'tablets')">
+                        <span>📲</span> Tablets & Kindle
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="tv_video" onclick="selecionarCategoria(this, 'tv_video')">
+                        <span>📺</span> Smart TVs & Vídeo
+                    </button>
                 </div>
             </div>
         </div>
@@ -1427,6 +1531,109 @@
         );
 
 
+        let activeCategoryKey = 'tecnologia';
+        let activeCategoryName = 'Tecnologia Geral';
+
+        const NOMES_CATEGORIAS = {
+            'tecnologia': 'Tecnologia Geral',
+            'notebooks': 'Notebooks & PCs',
+            'smartphones': 'Smartphones 5G',
+            'hardware': 'Hardware & Placas',
+            'perifericos': 'Periféricos & Monitores',
+            'games': 'Games & Consoles',
+            'audio': 'Áudio & Fones',
+            'smart_home': 'Casa Inteligente',
+            'wearables': 'Smartwatches',
+            'tablets': 'Tablets & Kindle',
+            'tv_video': 'Smart TVs & Vídeo'
+        };
+
+        const TERMOS_PADRAO_CATEGORIAS = {
+            'tecnologia': 'notebook i7',
+            'notebooks': 'notebook gamer rtx',
+            'smartphones': 'smartphone 5g',
+            'hardware': 'placa de video rtx 4060',
+            'perifericos': 'monitor 144hz ips',
+            'games': 'playstation 5',
+            'audio': 'fone bluetooth cancelamento ruido',
+            'smart_home': 'alexa echo dot',
+            'wearables': 'smartwatch',
+            'tablets': 'ipad',
+            'tv_video': 'smart tv 4k'
+        };
+
+        function selecionarCategoria(btn, catKey) {
+            document.querySelectorAll('#categoriesPillsContainer .category-pill').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+            activeCategoryKey = catKey;
+            activeCategoryName = NOMES_CATEGORIAS[catKey] || catKey;
+
+            // Preenche sugestão no input de busca para conveniência
+            const sugestao = TERMOS_PADRAO_CATEGORIAS[catKey];
+            if (sugestao) {
+                document.getElementById('queryInput').value = sugestao;
+            }
+        }
+
+        async function buscarCategoriaAtiva() {
+            const platform = document.getElementById('platformInput').value;
+            const limit = document.getElementById('limitInput').value;
+
+            const btn = document.getElementById('btnBuscarCategoria');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const spinnerText = document.getElementById('spinnerText');
+            const resultsSection = document.getElementById('resultsSection');
+            const alertError = document.getElementById('alertError');
+            const alertNotification = document.getElementById('alertNotification');
+
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Buscando...`;
+
+            const nomePlataforma = document.getElementById('platformInput').selectedOptions[0].textContent.trim();
+            spinnerText.textContent = `Buscando principais produtos de ${activeCategoryName} em ${nomePlataforma}...`;
+
+            loadingSpinner.classList.remove('d-none');
+            resultsSection.classList.add('d-none');
+            alertError.classList.add('d-none');
+            alertNotification.classList.add('d-none');
+
+            try {
+                const response = await fetch('/api/scrape-category', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category: activeCategoryKey,
+                        platform: platform,
+                        limit: parseInt(limit)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Falha ao buscar categoria.');
+                }
+
+                currentResultsData = result.data || [];
+
+                if (currentResultsData.length === 0) {
+                    throw new Error(`Nenhum produto encontrado para a categoria ${activeCategoryName}.`);
+                }
+
+                renderResults(result);
+                avisar(`✨ ${currentResultsData.length} produtos coletados para a categoria: ${activeCategoryName}!`, 'success');
+
+            } catch (err) {
+                document.getElementById('errorMessage').textContent = err.message;
+                alertError.classList.remove('d-none');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+                loadingSpinner.classList.add('d-none');
+            }
+        }
+
         document.getElementById('searchForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -1445,8 +1652,6 @@
             btnSearch.disabled = true;
             btnSearch.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Pesquisando...`;
             
-            // O texto sai do próprio <option> escolhido: uma loja nova no
-            // seletor já aparece aqui sem precisar de mais um if.
             const nomeDaBusca = document.getElementById('platformInput').selectedOptions[0].textContent.trim();
             spinnerText.textContent = `Coletando ofertas em ${nomeDaBusca}...`;
 
@@ -1470,8 +1675,6 @@
 
                 currentResultsData = result.data || [];
 
-                // Busca vazia agora explica o motivo (CAPTCHA, timeout, seletor
-                // desatualizado) em vez de só mostrar "0 produtos".
                 if (currentResultsData.length === 0) {
                     const motivo = (result.warnings && result.warnings.length)
                         ? result.warnings.join(' | ')
@@ -1504,26 +1707,22 @@
             document.getElementById('statMedio').textContent = `R$ ${stats.preco_medio.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             document.getElementById('statFrete').textContent = `${stats.pct_frete_gratis}%`;
 
-            if (res.csv_file) {
-                document.getElementById('btnDownloadCsv').href = `/download/${res.csv_file}`;
-                document.getElementById('btnDownloadCsv').classList.remove('disabled');
-            }
-            if (res.json_file) {
-                document.getElementById('btnDownloadJson').href = `/download/${res.json_file}`;
-                document.getElementById('btnDownloadJson').classList.remove('disabled');
-            }
-
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
             document.getElementById('selectAllCheckbox').checked = false;
             updateSelectedCount();
 
             if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">Nenhum produto encontrado para o termo pesquisado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">Nenhum produto encontrado.</td></tr>`;
             } else {
                 data.forEach((item, index) => {
-                    const priceFormatted = item.preco ? `R$ ${item.preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'N/I';
-                    const originalPriceFormatted = item.preco_original ? `R$ ${item.preco_original.toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : '';
+                    const precoAtualNum = item.valor_depois !== undefined && item.valor_depois !== null ? item.valor_depois : item.preco;
+                    const precoAntigoNum = item.valor_antes !== undefined && item.valor_antes !== null ? item.valor_antes : item.preco_original;
+
+                    const priceFormatted = precoAtualNum ? `R$ ${Number(precoAtualNum).toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'N/I';
+                    const originalPriceFormatted = (precoAntigoNum && precoAntigoNum > precoAtualNum)
+                        ? `R$ ${Number(precoAntigoNum).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`
+                        : '';
                     
                     const imgTag = item.imagem_url 
                         ? `<img src="${item.imagem_url}" class="product-img" alt="Produto">` 
@@ -1538,8 +1737,13 @@
 
                     const sellerName = item.vendedor || loja.nomeCompleto;
                     
-                    const destaqueBadge = item.destaque 
-                        ? `<span class="badge badge-destaque mb-1 d-inline-block"><i class="fa-solid fa-fire me-1 text-danger"></i> ${item.destaque.toUpperCase()}</span><br>`
+                    const descontoTexto = item.desconto || item.destaque;
+                    const destaqueBadge = descontoTexto 
+                        ? `<span class="badge badge-discount-tag mb-1 d-inline-block"><i class="fa-solid fa-tag me-1"></i> ${descontoTexto.toUpperCase()}</span><br>`
+                        : '';
+
+                    const categoryBadge = item.categoria
+                        ? `<span class="badge bg-dark border border-secondary text-warning small me-1 mb-1"><i class="fa-solid fa-folder me-1"></i>${item.categoria}</span>`
                         : '';
 
                     const couponBadge = item.cupom 
@@ -1561,17 +1765,20 @@
                             <input type="checkbox" class="form-check-input deal-checkbox" data-index="${index}" onchange="updateSelectedCount()">
                         </td>
                         <td>${imgTag}</td>
-                        <td>${platformBadge}</td>
+                        <td>
+                            ${platformBadge}
+                            ${categoryBadge ? `<div class="mt-1">${categoryBadge}</div>` : ''}
+                        </td>
                         <td>
                             ${destaqueBadge}
                             <a href="${item.link || '#'}" target="_blank" class="text-light fw-medium text-decoration-none hover-warning">
-                                ${item.titulo}
+                                ${item.nome_produto || item.titulo}
                             </a>
                             <div class="small text-muted mt-1"><i class="fa-solid fa-tag me-1"></i> Condição: ${item.condicao || 'Novo'}</div>
                         </td>
                         <td class="text-end">
-                            <div class="price-tag">${priceFormatted}</div>
-                            ${originalPriceFormatted ? `<div class="text-decoration-line-through text-muted small">${originalPriceFormatted}</div>` : ''}
+                            ${originalPriceFormatted ? `<div class="badge-original-price">De: ${originalPriceFormatted}</div>` : ''}
+                            <div class="price-tag">Por: ${priceFormatted}</div>
                         </td>
                         <td class="text-center">${couponBadge}</td>
                         <td><span class="badge bg-dark border border-secondary text-info"><i class="fa-solid fa-store me-1"></i> ${sellerName}</span></td>
@@ -1658,7 +1865,10 @@
                 const response = await fetch(`/api/export/${format}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ products: currentResultsData })
+                    body: JSON.stringify({
+                        products: currentResultsData,
+                        category: activeCategoryKey || 'produtos_tecnologia'
+                    })
                 });
 
                 if (!response.ok) throw new Error('Falha ao gerar arquivo.');
@@ -1667,7 +1877,7 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `produtos_exportados.${format}`;
+                a.download = `produtos_${activeCategoryKey || 'export'}.${format}`;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();

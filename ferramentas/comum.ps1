@@ -1,4 +1,4 @@
-﻿# Funcoes compartilhadas pelo iniciar.ps1 e pelo parar.ps1.
+# Funcoes compartilhadas pelo iniciar.ps1 e pelo parar.ps1.
 # Nada aqui depende da letra do pendrive: tudo sai de $PSScriptRoot.
 
 function Get-RaizPacote {
@@ -118,7 +118,8 @@ function Stop-ProcessosDoPacote {
             if ($proc) {
                 $caminho = $null
                 try { $caminho = $proc.Path } catch { $caminho = $null }
-                if ($caminho -and $caminho.ToLower().StartsWith($prefixo)) {
+                $procNome = $proc.ProcessName.ToLower()
+                if (($caminho -and $caminho.ToLower().StartsWith($prefixo)) -or ($procNome -in @("node", "python", "waitress"))) {
                     Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
                     $encerrados++
                 }

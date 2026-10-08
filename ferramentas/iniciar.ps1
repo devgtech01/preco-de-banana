@@ -1,4 +1,4 @@
-﻿# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Sobe o bot (Node) e o portal (Python) usando SOMENTE o que esta no pendrive.
 # Nada e' instalado na maquina anfitria e nada e' gravado fora desta pasta.
 # ---------------------------------------------------------------------------
@@ -17,23 +17,42 @@ Write-Host "  rodando de: $Raiz" -ForegroundColor DarkGray
 Write-Host ""
 
 # --- 1. O pacote esta completo? -------------------------------------------
-$python  = Join-Path $Raiz "runtime\python\python.exe"
-$node    = Join-Path $Raiz "runtime\node\node.exe"
 $pastaBot    = Join-Path $Raiz "app\bot-divulgar-produtos"
 $pastaPortal = Join-Path $Raiz "app\web_scraping"
 $browsers    = Join-Path $Raiz "runtime\browsers"
 
+# 1.1 Localizar Python (portatil ou venv / sistema)
+$python = Join-Path $Raiz "runtime\python\python.exe"
+if (-not (Test-Path $python)) {
+    $venvRaiz = Join-Path $Raiz ".venv\Scripts\python.exe"
+    $venvApp  = Join-Path $pastaPortal ".venv\Scripts\python.exe"
+    if (Test-Path $venvRaiz) {
+        $python = $venvRaiz
+    } elseif (Test-Path $venvApp) {
+        $python = $venvApp
+    } else {
+        $cmdPy = Get-Command "python.exe" -ErrorAction SilentlyContinue
+        if ($cmdPy) { $python = $cmdPy.Source }
+    }
+}
+
+# 1.2 Localizar Node (portatil ou sistema)
+$node = Join-Path $Raiz "runtime\node\node.exe"
+if (-not (Test-Path $node)) {
+    $cmdNode = Get-Command "node.exe" -ErrorAction SilentlyContinue
+    if ($cmdNode) { $node = $cmdNode.Source }
+}
+
 foreach ($item in @($python, $node, (Join-Path $pastaBot "server.js"), (Join-Path $pastaPortal "servir.py"))) {
-    if (-not (Test-Path $item)) {
+    if (-not $item -or -not (Test-Path $item)) {
         Write-Host "  ERRO: faltando $item" -ForegroundColor Red
-        Write-Host "  Este pendrive nao foi montado por completo." -ForegroundColor Red
-        Write-Host "  Rode o montar-pendrive.ps1 de novo na maquina de origem." -ForegroundColor Red
+        Write-Host "  Instale o Node.js e Python/venv ou monte a pasta runtime." -ForegroundColor Red
         exit 1
     }
 }
 
 if (-not (Test-Path $browsers)) {
-    Write-Host "  Aviso: navegador nao embarcado — a busca de ofertas vai falhar." -ForegroundColor Yellow
+    Write-Host "  Aviso: usando navegadores instalados no sistema (Playwright)." -ForegroundColor DarkGray
 }
 
 # --- 2. O pendrive aceita escrita? ----------------------------------------
@@ -83,7 +102,11 @@ if ($portaPortal -ne $pedidoPortal) {
 # Estas variaveis tem prioridade sobre os .env: tanto o python-dotenv quanto o
 # dotenv do Node so preenchem o que ainda nao existe no ambiente. E' assim que
 # a porta escolhida agora vence o valor gravado no arquivo.
-$env:PATH = "$(Join-Path $Raiz 'runtime\node');$(Join-Path $Raiz 'runtime\python');$env:PATH"
+if (Test-Path (Join-Path $Raiz 'runtime\node')) {
+    $env:PATH = "$(Join-Path $Raiz 'runtime\node');$(Join-Path $Raiz 'runtime\python');$env:PATH"
+} elseif ($python -and (Test-Path (Split-Path -Parent $python))) {
+    $env:PATH = "$(Split-Path -Parent $python);$env:PATH"
+}
 
 $env:BIND_HOST   = $bind
 $env:PORT        = "$portaBot"
@@ -100,9 +123,12 @@ if ($semLogin) { $env:SEM_LOGIN = "1" } else { $env:SEM_LOGIN = "0" }
 # Sem isto o portal procuraria o bot no host "bot-service" (nome do container).
 $env:BOT_API_URL = "http://127.0.0.1:$portaBot"
 
-# Tira o Firefox de %LOCALAPPDATA% (que nao existe na maquina anfitria) e o
-# aponta para dentro do pendrive.
-$env:PLAYWRIGHT_BROWSERS_PATH = $browsers
+# Tira o Firefox de %LOCALAPPDATA% se a pasta embarcada existir no pendrive.
+if (Test-Path $browsers) {
+    $env:PLAYWRIGHT_BROWSERS_PATH = $browsers
+} else {
+    Remove-Item Env:\PLAYWRIGHT_BROWSERS_PATH -ErrorAction SilentlyContinue
+}
 
 $env:PYTHONIOENCODING = "utf-8"   # os logs tem emoji; sem isto o print quebra
 $env:PYTHONUNBUFFERED = "1"       # log aparece na hora, nao em blocos

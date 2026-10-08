@@ -25,6 +25,7 @@ if hasattr(sys.stdout, 'reconfigure'):
 if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8')
 
+import categories
 import marketplaces
 from utils import save_to_json, save_to_csv, calculate_stats
 
@@ -430,10 +431,70 @@ def run_scrape():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/categories', methods=['GET'])
+@login_required
+def get_categories():
+    """Retorna as categorias disponíveis para busca especializada (com foco em Tecnologia)."""
+    try:
+        cats = categories.listar_categorias()
+        return jsonify({'success': True, 'categories': cats})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/scrape-category', methods=['POST'])
+@login_required
+def run_scrape_category():
+    """Executa a busca especializada dos principais produtos de uma categoria em múltiplos marketplaces."""
+    try:
+        body = request.get_json() or {}
+        category_key = body.get('category', 'tecnologia').strip()
+        platform = body.get('platform', 'all')
+        limit = int(body.get('limit', 30))
+        headful = bool(body.get('headful', False))
+
+        if not SCRAPE_LOCK.acquire(blocking=False):
+            return jsonify({
+                'success': False,
+                'error': 'Já existe uma busca em andamento. Aguarde ela terminar.'
+            }), 429
+
+        try:
+            results = categories.buscar_produtos_por_categoria(
+                categoria_chave=category_key,
+                plataformas=platform,
+                limite_por_termo=max(4, limit // 3),
+                max_paginas=1,
+                limite_total=limit,
+                headless=not headful
+            )
+        finally:
+            SCRAPE_LOCK.release()
+
+        stats = calculate_stats(results)
+
+        cat_info = categories.CATEGORIAS.get(category_key, {})
+        cat_nome = cat_info.get("nome", category_key.capitalize())
+        cat_emoji = cat_info.get("emoji", "💻")
+
+        return jsonify({
+            'success': True,
+            'data': results,
+            'stats': stats,
+            'category': category_key,
+            'category_name': f"{cat_emoji} {cat_nome}",
+            'platform': platform,
+            'error': 'Nenhum produto encontrado para a categoria selecionada.' if not results else None
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/export/csv', methods=['POST'])
 @login_required
 def export_csv():
-    """Gera o arquivo CSV em memória e entrega para download no navegador apenas quando solicitado."""
+    """Gera o arquivo CSV formatado com nome do produto, link, valor de antes e depois."""
     try:
         import io
         import pandas as pd
@@ -441,42 +502,116 @@ def export_csv():
 
         body = request.get_json() or {}
         products = body.get('products', [])
+        category_name = body.get('category', 'produtos')
 
         if not products:
             return jsonify({'success': False, 'error': 'Nenhum produto para exportar.'}), 400
 
-        df = pd.DataFrame(products)
+        # Padroniza colunas em ordem de prioridade
+        colunas_ordem = [
+            "nome_produto",
+            "link",
+            "valor_antes",
+            "valor_depois",
+            "desconto",
+            "categoria",
+            "plataforma",
+            "frete_gratis",
+            "cupom",
+            "vendedor",
+            "condicao"
+        ]
+
+        linhas = []
+        for p in products:
+            nome = p.get("nome_produto") or p.get("titulo") or ""
+            link = p.get("link") or ""
+            valor_antes = p.get("valor_antes") if p.get("valor_antes") is not None else p.get("preco_original")
+            valor_depois = p.get("valor_depois") if p.get("valor_depois") is not None else p.get("preco")
+            desconto = p.get("desconto") or p.get("destaque")
+            if not desconto and valor_antes and valor_depois and valor_antes > valor_depois:
+                pct = round(((valor_antes - valor_depois) / valor_antes) * 100)
+                desconto = f"{pct}% OFF"
+
+            item = {
+                "nome_produto": nome,
+                "link": link,
+                "valor_antes": valor_antes,
+                "valor_depois": valor_depois,
+                "desconto": desconto,
+                "categoria": p.get("categoria", "Tecnologia"),
+                "plataforma": p.get("plataforma", ""),
+                "frete_gratis": "Sim" if p.get("frete_gratis") else "Não",
+                "cupom": p.get("cupom") or "",
+                "vendedor": p.get("vendedor") or "",
+                "condicao": p.get("condicao") or "Novo"
+            }
+            linhas.append(item)
+
+        df = pd.DataFrame(linhas)
         output = io.StringIO()
         df.to_csv(output, index=False, encoding='utf-8-sig')
+
+        filename = f"{slugify(category_name)}_export.csv"
 
         return Response(
             output.getvalue(),
             mimetype="text/csv",
-            headers={"Content-Disposition": "attachment;filename=produtos_exportados.csv"}
+            headers={"Content-Disposition": f"attachment;filename={filename}"}
         )
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @app.route('/api/export/json', methods=['POST'])
 @login_required
 def export_json():
-    """Gera o arquivo JSON em memória e entrega para download no navegador apenas quando solicitado."""
+    """Gera o arquivo JSON formatado com nome do produto, link, valor de antes e depois."""
     try:
         import json
         from flask import Response
 
         body = request.get_json() or {}
         products = body.get('products', [])
+        category_name = body.get('category', 'produtos')
 
         if not products:
             return jsonify({'success': False, 'error': 'Nenhum produto para exportar.'}), 400
 
-        json_str = json.dumps(products, ensure_ascii=False, indent=2)
+        linhas = []
+        for p in products:
+            nome = p.get("nome_produto") or p.get("titulo") or ""
+            link = p.get("link") or ""
+            valor_antes = p.get("valor_antes") if p.get("valor_antes") is not None else p.get("preco_original")
+            valor_depois = p.get("valor_depois") if p.get("valor_depois") is not None else p.get("preco")
+            desconto = p.get("desconto") or p.get("destaque")
+            if not desconto and valor_antes and valor_depois and valor_antes > valor_depois:
+                pct = round(((valor_antes - valor_depois) / valor_antes) * 100)
+                desconto = f"{pct}% OFF"
+
+            item = {
+                "nome_produto": nome,
+                "link": link,
+                "valor_antes": valor_antes,
+                "valor_depois": valor_depois,
+                "desconto": desconto,
+                "categoria": p.get("categoria", "Tecnologia"),
+                "plataforma": p.get("plataforma", ""),
+                "frete_gratis": bool(p.get("frete_gratis")),
+                "cupom": p.get("cupom") or None,
+                "vendedor": p.get("vendedor") or "",
+                "condicao": p.get("condicao") or "Novo",
+                "imagem_url": p.get("imagem_url") or None
+            }
+            linhas.append(item)
+
+        json_str = json.dumps(linhas, ensure_ascii=False, indent=2)
+        filename = f"{slugify(category_name)}_export.json"
 
         return Response(
             json_str,
             mimetype="application/json",
-            headers={"Content-Disposition": "attachment;filename=produtos_exportados.json"}
+            headers={"Content-Disposition": f"attachment;filename={filename}"}
         )
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
