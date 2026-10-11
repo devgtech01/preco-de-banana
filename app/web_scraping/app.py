@@ -26,6 +26,7 @@ if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8')
 
 import categories
+import enviar_site
 import marketplaces
 from utils import save_to_json, save_to_csv, calculate_stats
 
@@ -367,6 +368,79 @@ def publish_batch():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+def _enviar_automatico(resultados: list[dict], origem: str):
+    """Com SITE_ENVIO_AUTOMATICO=1, toda busca já vai para o site. Falha no envio não derruba a busca."""
+    if not resultados or not enviar_site.envio_automatico():
+        return None
+    try:
+        resumo = enviar_site.enviar_oportunidades(resultados, origem=origem[:60])
+    except Exception as erro:  # o resultado da busca continua valendo na tela
+        resumo = {'ok': False, 'enviadas': 0, 'erros': [str(erro)]}
+    resumo['mensagem'] = enviar_site.descrever(resumo)
+    print(resumo['mensagem'], flush=True)
+    return resumo
+
+
+# --- Piloto automático (ver piloto_automatico.py) ---------------------------
+import piloto_automatico  # noqa: E402
+
+
+@app.route('/api/piloto/status', methods=['GET'])
+@login_required
+def piloto_status():
+    try:
+        return jsonify({'success': True, **piloto_automatico.status()})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/piloto/pausar', methods=['POST'])
+@login_required
+def piloto_pausar():
+    pausado = bool((request.get_json() or {}).get('pausado', True))
+    piloto_automatico.pausar(pausado)
+    return jsonify({'success': True, 'pausado': pausado})
+
+
+@app.route('/api/piloto/rodar-agora', methods=['POST'])
+@login_required
+def piloto_rodar_agora():
+    piloto_automatico.rodar_agora()
+    return jsonify({'success': True})
+
+
+@app.route('/api/site-status', methods=['GET'])
+@login_required
+def site_status():
+    """Envio para o site configurado? Com ?testar=1 confere também o endereço e o token."""
+    info = {
+        'configurado': enviar_site.configurado(),
+        'automatico': enviar_site.envio_automatico(),
+    }
+    if request.args.get('testar') == '1':
+        info['conexao'] = enviar_site.testar_conexao()
+    return jsonify(info)
+
+
+@app.route('/api/send-to-site', methods=['POST'])
+@login_required
+def send_to_site():
+    """Envia as ofertas marcadas na tabela para a caixa de entrada do site."""
+    body = request.get_json() or {}
+    produtos = body.get('products') or []
+    if not isinstance(produtos, list) or not produtos:
+        return jsonify({'success': False, 'error': 'Nenhum produto selecionado.'}), 400
+    if not enviar_site.configurado():
+        return jsonify({'success': False, 'error': 'Preencha SITE_URL e SITE_TOKEN no config.txt e reinicie.'}), 400
+
+    resumo = enviar_site.enviar_oportunidades(produtos, origem=str(body.get('origem') or 'portal')[:60])
+    return jsonify({
+        'success': resumo['enviadas'] > 0,
+        'resumo': resumo,
+        'message': enviar_site.descrever(resumo),
+    }), (200 if resumo['enviadas'] > 0 else 502)
+
+
 @app.route('/api/scrape', methods=['POST'])
 @login_required
 def run_scrape():
@@ -414,12 +488,14 @@ def run_scrape():
             SCRAPE_LOCK.release()
 
         stats = calculate_stats(results)
+        site = _enviar_automatico(results, origem=f"busca: {query}")
 
         # Retorna apenas em memória, sem salvar nenhum arquivo no disco da VPS
         return jsonify({
             'success': True,
             'data': results,
             'stats': stats,
+            'site': site,
             'query': query,
             'platform': platform,
             # Motivo explícito quando a busca volta vazia — antes o portal só
@@ -472,6 +548,7 @@ def run_scrape_category():
             SCRAPE_LOCK.release()
 
         stats = calculate_stats(results)
+        site = _enviar_automatico(results, origem=f"categoria: {category_key}")
 
         cat_info = categories.CATEGORIAS.get(category_key, {})
         cat_nome = cat_info.get("nome", category_key.capitalize())
@@ -481,6 +558,7 @@ def run_scrape_category():
             'success': True,
             'data': results,
             'stats': stats,
+            'site': site,
             'category': category_key,
             'category_name': f"{cat_emoji} {cat_nome}",
             'platform': platform,

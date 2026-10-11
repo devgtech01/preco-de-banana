@@ -469,6 +469,43 @@
             </div>
         </div>
 
+        <!-- PILOTO AUTOMATICO: estado do ciclo e ultimas postagens (piloto_automatico.py) -->
+        <div class="card card-custom mb-4 border-success border-opacity-25 shadow" id="pilotoCard">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div>
+                        <h6 class="fw-bold text-light mb-1">
+                            <i class="fa-solid fa-robot text-success me-2"></i> Piloto automático
+                            <span id="pilotoSelo" class="badge bg-secondary ms-2">carregando…</span>
+                        </h6>
+                        <small class="text-secondary" id="pilotoFase">—</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-light" id="pilotoBtnRodar" onclick="pilotoRodarAgora()">
+                            <i class="fa-solid fa-forward me-1"></i> Rodar agora
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" id="pilotoBtnPausar" onclick="pilotoAlternarPausa()">
+                            <i class="fa-solid fa-pause me-1"></i> Pausar postagens
+                        </button>
+                    </div>
+                </div>
+                <div class="row g-2 mb-3 small">
+                    <div class="col-6 col-md-3"><div class="text-secondary">Postadas hoje</div><div class="fs-5 text-light" id="pilotoHoje">0</div></div>
+                    <div class="col-6 col-md-3"><div class="text-secondary">Na última hora</div><div class="fs-5 text-light" id="pilotoHora">0</div></div>
+                    <div class="col-6 col-md-3"><div class="text-secondary">Produtos monitorados</div><div class="fs-5 text-light" id="pilotoMonitorados">0</div></div>
+                    <div class="col-6 col-md-3"><div class="text-secondary">Próximo ciclo</div><div class="fs-5 text-light" id="pilotoProximo">—</div></div>
+                </div>
+                <div id="pilotoErro" class="alert alert-danger py-2 small d-none"></div>
+                <div class="table-responsive" style="max-height: 260px;">
+                    <table class="table table-dark table-sm small mb-0 align-middle">
+                        <thead><tr><th>Quando</th><th>Loja</th><th>Produto</th><th class="text-end">Preço</th><th>Canais</th></tr></thead>
+                        <tbody id="pilotoUltimos"><tr><td colspan="5" class="text-secondary">Nenhuma postagem automática ainda.</td></tr></tbody>
+                    </table>
+                </div>
+                <small class="text-secondary d-block mt-2">Regras e liga/desliga: seção "Piloto automatico" do config.txt (vale no próximo ciclo, sem reiniciar).</small>
+            </div>
+        </div>
+
         <!-- BUSCA ESPECIALIZADA POR CATEGORIAS (FOCO EM TECNOLOGIA) -->
         <div class="card card-custom mb-4 border-warning border-opacity-25 shadow">
             <div class="card-body p-4">
@@ -637,6 +674,12 @@
                     <!-- BOTÃO DE POSTAGEM EM LOTE -->
                     <button id="btnPublishBatch" class="btn btn-publish text-nowrap px-3" onclick="publishSelectedBatch()">
                         <i class="fa-solid fa-paper-plane me-1"></i> Postar Selecionados (<span id="selectedCount">0</span>)
+                    </button>
+
+                    <!-- ENVIO PARA A CAIXA DE ENTRADA DO SITE (Tech Wolf > Oportunidades) -->
+                    <button id="btnSendToSite" class="btn btn-outline-warning text-nowrap px-3" onclick="enviarParaSite()"
+                            title="Manda as ofertas para o painel do site, que aplica o seu link de afiliado">
+                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Enviar para o site
                     </button>
                 </div>
 
@@ -850,6 +893,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             fetchMetricsAndStatus();
             setInterval(fetchMetricsAndStatus, 3000);
+            carregarPiloto();
+            setInterval(carregarPiloto, 10000);
             loadBotSettings();
 
             // A lista de grupos depende do WhatsApp estar conectado, o que
@@ -861,6 +906,54 @@
                 modalConfig.addEventListener('shown.bs.modal', carregarGruposWhatsApp);
             }
         });
+
+        // --- Piloto automático ---------------------------------------------
+        let pilotoPausado = false;
+        async function carregarPiloto() {
+            try {
+                const res = await fetch('/api/piloto/status');
+                const d = await res.json();
+                if (!d.success) return;
+                pilotoPausado = !!d.pausado;
+                const selo = document.getElementById('pilotoSelo');
+                let texto = 'ligado', cor = 'bg-success';
+                if (!d.ativo_no_config) { texto = 'desligado no config.txt'; cor = 'bg-secondary'; }
+                else if (d.pausado) { texto = 'postagens pausadas'; cor = 'bg-warning text-dark'; }
+                else if (d.silencio_agora) { texto = 'horário de silêncio'; cor = 'bg-info text-dark'; }
+                selo.textContent = texto;
+                selo.className = 'badge ms-2 ' + cor;
+                document.getElementById('pilotoFase').textContent =
+                    (d.detalhe || d.fase || '—') + (d.ultima_categoria ? '  ·  última categoria: ' + d.ultima_categoria : '');
+                document.getElementById('pilotoHoje').textContent = d.postados_hoje;
+                document.getElementById('pilotoHora').textContent = d.postados_ultima_hora + ' / ' + (d.regras.PILOTO_MAX_POR_HORA || '?');
+                document.getElementById('pilotoMonitorados').textContent = d.produtos_monitorados;
+                document.getElementById('pilotoProximo').textContent = d.proximo_ciclo ? d.proximo_ciclo.slice(11, 16) : (d.fase === 'buscando' || d.fase === 'publicando' ? 'agora' : '—');
+                const erro = document.getElementById('pilotoErro');
+                erro.classList.toggle('d-none', !d.ultimo_erro);
+                erro.textContent = d.ultimo_erro ? 'Último erro: ' + d.ultimo_erro : '';
+                const btn = document.getElementById('pilotoBtnPausar');
+                btn.innerHTML = d.pausado ? '<i class="fa-solid fa-play me-1"></i> Retomar postagens' : '<i class="fa-solid fa-pause me-1"></i> Pausar postagens';
+                const corpo = document.getElementById('pilotoUltimos');
+                if (d.ultimos && d.ultimos.length) {
+                    corpo.innerHTML = d.ultimos.map(function (p) {
+                        return '<tr><td class="text-nowrap">' + escapar(p.postado_em.slice(8, 10) + '/' + p.postado_em.slice(5, 7) + ' ' + p.postado_em.slice(11, 16)) + '</td>' +
+                            '<td class="text-nowrap">' + escapar(p.plataforma || '') + '</td>' +
+                            '<td><a class="link-light" target="_blank" rel="noopener" href="' + escapar(p.link || '#') + '">' + escapar((p.titulo || '').slice(0, 70)) + '</a></td>' +
+                            '<td class="text-end text-nowrap">' + formatarPreco(p.preco) + '</td>' +
+                            '<td class="text-nowrap">' + escapar(p.canais || '') + '</td></tr>';
+                    }).join('');
+                }
+            } catch (e) { /* portal ainda subindo */ }
+        }
+        async function pilotoAlternarPausa() {
+            await fetch('/api/piloto/pausar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pausado: !pilotoPausado }) });
+            carregarPiloto();
+        }
+        async function pilotoRodarAgora() {
+            await fetch('/api/piloto/rodar-agora', { method: 'POST' });
+            avisar('Próximo ciclo do piloto começa agora (se não houver um rodando).', 'success');
+            setTimeout(carregarPiloto, 1500);
+        }
 
         // Atualização contínua das métricas de CPU, RAM e Status dos Canais
         async function fetchMetricsAndStatus() {
@@ -1622,7 +1715,11 @@
                 }
 
                 renderResults(result);
-                avisar(`✨ ${currentResultsData.length} produtos coletados para a categoria: ${activeCategoryName}!`, 'success');
+                avisar(
+                    `✨ ${currentResultsData.length} produtos coletados para a categoria: ${activeCategoryName}!` +
+                    (result.site ? ` ${result.site.mensagem}` : ''),
+                    result.site && !result.site.ok ? 'warning' : 'success'
+                );
 
             } catch (err) {
                 document.getElementById('errorMessage').textContent = err.message;
@@ -1687,6 +1784,8 @@
                 }
 
                 renderResults(result);
+                // Envio automático para o site (SITE_ENVIO_AUTOMATICO=1 no config.txt).
+                if (result.site) avisar(result.site.mensagem, result.site.ok ? 'success' : 'warning');
 
             } catch (err) {
                 document.getElementById('errorMessage').textContent = err.message;
@@ -1852,6 +1951,49 @@
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
+            }
+        }
+
+        /**
+         * Manda as ofertas para a caixa de entrada do site (Oportunidades).
+         * Com itens marcados envia só eles; sem nenhum, pergunta se envia a tabela toda.
+         */
+        async function enviarParaSite() {
+            if (!currentResultsData || currentResultsData.length === 0) {
+                alert('Faça uma busca antes de enviar para o site.');
+                return;
+            }
+
+            const marcados = [];
+            document.querySelectorAll('.deal-checkbox:checked').forEach(cb => {
+                const item = currentResultsData[parseInt(cb.getAttribute('data-index'))];
+                if (item) marcados.push(item);
+            });
+
+            let itens = marcados;
+            if (itens.length === 0) {
+                if (!confirm(`Nenhuma oferta marcada. Enviar as ${currentResultsData.length} da tabela para o site?`)) return;
+                itens = currentResultsData;
+            }
+
+            const btn = document.getElementById('btnSendToSite');
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Enviando ${itens.length}...`;
+
+            try {
+                const res = await fetch('/api/send-to-site', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ products: itens, origem: activeCategoryKey ? `categoria: ${activeCategoryKey}` : 'portal' })
+                });
+                const data = await res.json();
+                avisar(data.message || data.error || 'Sem resposta do site.', data.success ? 'success' : 'warning');
+            } catch (err) {
+                avisar('Erro ao enviar para o site: ' + err.message, 'danger');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = original;
             }
         }
 

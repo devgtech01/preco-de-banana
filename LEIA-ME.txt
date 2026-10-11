@@ -73,6 +73,44 @@ LOJAS QUE O PROGRAMA BUSCA
  para os links /sec/ do Mercado Livre e magazinevoce do Magalu.
 
 
+PILOTO AUTOMATICO (posta sozinho)
+---------------------------------
+ Com o programa aberto (INICIAR.bat), o piloto roda em segundo plano: a cada
+ 10 a 20 minutos ele pega a proxima categoria do rodizio, busca cada termo
+ dela no Mercado Livre, Amazon, AliExpress e KaBuM!, escolhe as melhores
+ ofertas e publica no WhatsApp e no Telegram ja com o seu link de afiliado.
+ Uma volta completa pelas 11 categorias leva cerca de 2 a 3 horas.
+
+ Como ele escolhe:
+   * desconto de pelo menos 15%, com foto, preco acima de R$ 15, produto novo;
+   * o titulo precisa bater com o termo buscado (capa de iPhone nao passa
+     como iPhone);
+   * desconto acima de 85% e' descartado (quase sempre e' erro ou golpe);
+   * ele guarda o preco de tudo que ve. Depois de 3 observacoes do mesmo
+     produto, o "de/por" da loja so vale se o preco estiver no menor patamar
+     ja visto - senao conta a queda real em relacao a mediana. E' isso que
+     barra o "de R$ 999 por R$ 499" com preco "de" inflado;
+   * no maximo 4 por ciclo, 15 por hora e 2 da mesma loja por ciclo;
+   * o mesmo produto so volta depois de 3 dias, ou antes se o preco cair
+     mais 5% em relacao a ultima postagem;
+   * das 23h as 7h nao posta (so continua anotando precos).
+
+ Todas essas regras ficam no config.txt, secao "Piloto automatico", e valem
+ a partir do ciclo seguinte - nao precisa reiniciar. PILOTO_ATIVO=0 desliga.
+
+ No portal, o quadro "Piloto automatico" mostra o que ele esta fazendo, as
+ ultimas postagens e tem os botoes "Rodar agora" e "Pausar postagens".
+ O registro detalhado fica em logs\piloto.log.
+
+ Enquanto o piloto esta buscando, uma busca manual no portal pode responder
+ "ja existe uma busca em andamento": e' de proposito (nunca abrir dois
+ Firefox ao mesmo tempo). Espere alguns segundos e tente de novo.
+
+ Shopee esta fora do piloto ate a API de afiliados ser liberada. Quando for,
+ cadastre App ID e Secret na engrenagem do portal e acrescente shopee em
+ PILOTO_LOJAS.
+
+
 PUBLICAR UM LINK QUE VOCE JA TEM EM MAOS
 ----------------------------------------
  Nem toda oferta aparece na busca. Quando o link chega por fora - indicacao de
@@ -96,6 +134,54 @@ PUBLICAR UM LINK QUE VOCE JA TEM EM MAOS
  geral apagaria justamente o produto, entao o programa nao faz isso - e avisa
  que o link esta saindo cru. Para monetizar produto nessas lojas, use o campo
  "Modelo" com {url} no meio (deeplink), nao o "Link fixo".
+
+
+ENVIAR AS OFERTAS PARA O SITE (Tech Wolf)
+-------------------------------------------
+ A busca continua saindo daqui, da internet de casa (as lojas barram IP de
+ servidor). O site fica no servidor e recebe o que voce coletar na caixa de
+ entrada do painel: Admin > Oportunidades. La ele aplica o SEU link de
+ afiliado de cada loja (Admin > Afiliados) e, se voce quiser, coloca as
+ ofertas no catalogo sozinho, conforme as regras que voce definir.
+
+ Quem inicia a conversa e' sempre o pendrive: o site nunca precisa alcancar
+ este computador, que continua fechado para a internet.
+
+ Como ligar:
+   1. No servidor do site, defina INTEGRATION_API_TOKEN (32+ caracteres).
+   2. Aqui, no config.txt, preencha:
+        SITE_URL=https://seu-site.com.br
+        SITE_TOKEN=o mesmo valor do INTEGRATION_API_TOKEN
+   3. Reinicie (PARAR.bat e INICIAR.bat).
+
+ Como usar:
+   * Botao "Enviar para o site", ao lado de "Postar Selecionados": manda as
+     ofertas marcadas (ou a tabela toda, se nenhuma estiver marcada).
+   * ENVIAR_PARA_SITE=1 no config.txt: toda busca ja vai sozinha.
+   * Linha de comando (para agendar no Agendador de Tarefas do Windows):
+       python main.py -c hardware --platform all --enviar-site
+
+ Uma mesma oferta enviada varias vezes nao duplica: o site atualiza o preco e
+ guarda o historico, que mostra se o preco e' mesmo o menor do mes.
+
+ O SITE_TOKEN so permite mandar ofertas para a caixa de entrada, nunca entrar
+ no painel. Mesmo assim, guarde-o como guarda o token do Telegram.
+
+
+PUBLICAR PELO PAINEL DO SITE (WhatsApp)
+---------------------------------------
+ Com SITE_URL e SITE_TOKEN preenchidos no config.txt, o bot pergunta ao site,
+ a cada 30 segundos, se ha publicacoes de WhatsApp esperando (Admin >
+ Publicacoes, ou "Aprovar e publicar" em Oportunidades). Ele envia cada uma
+ para o grupo configurado aqui no bot, com o mesmo intervalo de 6 a 14
+ segundos entre mensagens, e avisa o site se deu certo ou nao.
+
+ * O WhatsApp precisa estar conectado (QR Code lido) e com o grupo escolhido.
+ * Com o pendrive desligado, os pedidos esperam no site. Se passarem de 12 h
+   sem envio, expiram sozinhos: preco de ontem nao vai para o grupo.
+ * O Telegram e' enviado pelo proprio site (nao depende do pendrive).
+ * Na janela do bot aparece "Fila do site: ..." dizendo o que esta acontecendo
+   (conectado, enviando, token recusado, site fora do ar).
 
 
 SEM SENHA (e por que isso e' seguro aqui)

@@ -28,6 +28,16 @@ HOST = os.getenv('PORTAL_HOST', '127.0.0.1')
 PORT = int(os.getenv('PORTAL_PORT', '5000'))
 
 if __name__ == '__main__':
+    # Piloto automático: busca e publica sozinho em segundo plano. Usa o mesmo
+    # SCRAPE_LOCK das buscas manuais, então nunca abre dois Firefox juntos.
+    # Liga/desliga e regras: seção "Piloto automático" do config.txt.
+    try:
+        import piloto_automatico
+        from app import SCRAPE_LOCK
+        piloto_automatico.iniciar_em_segundo_plano(SCRAPE_LOCK)
+    except Exception as exc:  # o portal continua funcionando mesmo se o piloto falhar
+        print(f"⚠️  Piloto automático não iniciou: {exc}", flush=True)
+
     try:
         from waitress import serve
     except ImportError:

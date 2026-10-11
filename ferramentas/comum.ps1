@@ -15,6 +15,9 @@ function Get-Config {
         ABRIR_NAVEGADOR       = 1
         SOMENTE_ESTA_MAQUINA  = 1
         PEDIR_SENHA           = 0
+        SITE_URL              = ""
+        SITE_TOKEN            = ""
+        ENVIAR_PARA_SITE      = 0
     }
 
     $arquivo = Join-Path $Raiz "config.txt"

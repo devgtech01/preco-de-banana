@@ -11,6 +11,7 @@ const { db, getSettings, updateSettings, mascararSegredos } = require('./databas
 const { construirLink, rotuloDaPlataforma, linkDaLoja, esquemaDeAfiliados, linkSaiAfiliado } = require('./afiliados');
 const { scrapeProduct } = require('./scraper');
 const { criarTransporte } = require('./transportes');
+const { iniciarFilaDoSite } = require('./fila-site');
 const crypto = require('crypto');
 const session = require('express-session');
 const FormData = require('form-data');
@@ -740,3 +741,6 @@ function htmlToWhatsApp(html) {
 app.listen(PORT, BIND_HOST, () => {
     console.log(`Servidor rodando em http://localhost:${PORT} (escutando em ${BIND_HOST})`);
 });
+
+// Publicações de WhatsApp feitas no painel do site (Tech Wolf > Publicações).
+iniciarFilaDoSite({ transporte, resolveCredentials, normalizarJid, htmlToWhatsApp });

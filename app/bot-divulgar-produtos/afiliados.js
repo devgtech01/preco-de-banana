@@ -58,7 +58,11 @@ const MARKETPLACES = {
         home: 'https://www.mercadolivre.com.br/',
         campoLink: 'mlAffiliateLink',
         campoModelo: 'mlAffiliateTemplate',
-        campoParametros: 'mlAffiliateParams'
+        campoParametros: 'mlAffiliateParams',
+        // No Mercado Livre a afiliação vai nos parâmetros matt_word/matt_tool
+        // do próprio link do produto: aqui os "parâmetros extras" pagam
+        // comissão, não só rastreiam.
+        parametrosPagam: true
     },
     shopee: {
         rotulo: '🧡 Shopee',
@@ -286,6 +290,7 @@ function linkSaiAfiliado(plataforma, url, settings = {}, opcoes = {}) {
 
     const { info } = encontrado;
     if (linkJaAfiliado(url, info)) return true;
+    if (info.parametrosPagam && /matt_tool=/.test(campo(settings, info.campoParametros))) return true;
 
     const soParametros = { [info.campoParametros]: campo(settings, info.campoParametros) };
     return construirLink(plataforma, url, settings, opcoes) !== construirLink(plataforma, url, soParametros, opcoes);

@@ -20,6 +20,13 @@ def slugify(text: str) -> str:
     text = re.sub(r'[^\w\s-]', '', text)
     return re.sub(r'[-\s]+', '_', text)
 
+def enviar_para_site(resultados: list[dict], origem: str) -> None:
+    import enviar_site
+    resumo = enviar_site.enviar_oportunidades(resultados, origem=origem[:60])
+    cor = "green" if resumo["ok"] else "yellow"
+    console.print(f"[bold {cor}]{enviar_site.descrever(resumo)}[/bold {cor}]")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Multi-Marketplace Scraper (Mercado Livre, Amazon, Shopee, AliExpress e KaBuM!)."
@@ -40,6 +47,11 @@ def main():
     parser.add_argument("-f", "--format", choices=["json", "csv", "all"], default="all", help="Formato de saída (padrão: all)")
     parser.add_argument("--headful", action="store_true", help="Executa com a janela do navegador visível")
     parser.add_argument("--web", action="store_true", help="Inicia a Interface Web (Bootstrap) em http://127.0.0.1:5000")
+    parser.add_argument(
+        "--enviar-site",
+        action="store_true",
+        help="Envia o resultado para o site (Oportunidades). Usa SITE_API_URL e SITE_API_TOKEN.",
+    )
 
     args = parser.parse_args()
 
@@ -69,6 +81,8 @@ def main():
             formato=args.format,
             pasta_destino="data"
         )
+        if args.enviar_site:
+            enviar_para_site(results, f"categoria: {args.category}")
         console.print("\n[bold green]✨ Raspagem por categoria concluída com sucesso![/bold green]")
         return
 
@@ -110,6 +124,9 @@ def main():
 
     if args.format in ["csv", "all"]:
         save_to_csv(results, csv_path)
+
+    if args.enviar_site:
+        enviar_para_site(results, f"busca: {args.query}")
 
     console.print("\n[bold green]✨ Raspagem concluída com sucesso![/bold green]")
 
