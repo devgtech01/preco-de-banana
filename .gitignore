@@ -23,3 +23,6 @@ __pycache__/
 .vscode/
 .idea/
 .DS_Store
+
+# Segredos desta maquina (SITE_TOKEN...)
+config.local.txt

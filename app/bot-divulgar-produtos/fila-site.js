@@ -1,5 +1,5 @@
 /**
- * Fila de publicação do site (Tech Wolf) → WhatsApp.
+ * Fila de publicação do site (Tech Lobo) → WhatsApp.
  *
  * O site não alcança este computador (ele fica atrás do roteador de casa e
  * assim deve continuar). Então é o bot que pergunta, a cada 30 s, se há

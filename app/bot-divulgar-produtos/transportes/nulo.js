@@ -24,6 +24,9 @@ function criar() {
         async listarGrupos() {
             return [];
         },
+        async desconectar() {
+            throw new Error('WhatsApp desligado nesta instalação (WA_TRANSPORTE=nenhum).');
+        },
         async encerrar() {}
     };
 }

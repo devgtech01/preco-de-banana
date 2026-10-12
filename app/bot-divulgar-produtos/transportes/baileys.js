@@ -146,6 +146,34 @@ function criar({ db }) {
                 .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
         },
 
+        /**
+         * Desconecta o número: desfaz o pareamento no celular, apaga a sessão
+         * e volta a mostrar um QR Code novo (para ligar outro número).
+         */
+        async desconectar() {
+            if (sock && conectado) {
+                try {
+                    // O próprio Baileys fecha com "loggedOut"; o connection.update
+                    // acima limpa a sessão e reconecta mostrando um QR novo.
+                    await sock.logout();
+                    return { qrNovo: true };
+                } catch (err) {
+                    console.error('Logout do WhatsApp falhou, limpando a sessão local:', err.message);
+                }
+            }
+            // Sem conexão aberta (ou o logout falhou): zera a sessão local e
+            // reinicia; sem credenciais, a próxima conexão pede QR Code.
+            if (auth) await auth.limpar();
+            conectado = false;
+            qrUrl = null;
+            try {
+                if (sock) sock.end(undefined);   // o 'close' reagenda a conexão
+            } catch (e) {
+                agendar(1000);
+            }
+            return { qrNovo: true };
+        },
+
         async encerrar() {
             encerrando = true;
             try {

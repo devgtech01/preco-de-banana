@@ -1,0 +1,10 @@
+MODELO DE STORY DO INSTAGRAM (1080x1920)
+
+story.html       o layout (marca, selo, foto, desconto, preco, cupom, chamada)
+gerar_story.py   gera o PNG:  python gerar_story.py dados.json saida.png [--previa]
+exemplo.json     exemplo de dados
+fontes\, img\    Archivo Black + Inter, logo, fundo e icones das lojas
+
+Ao postar: cole o sticker de LINK do Instagram logo abaixo de "toque no link"
+(o --previa mostra o lugar). Nada importante fica acima de 220 px nem abaixo
+de 1790 px, onde o Instagram poe a barra de perfil e a de "Responder".

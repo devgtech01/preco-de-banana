@@ -1,0 +1,351 @@
+===========================================================================
+ PRECO BANANA - versao portatil (pendrive)
+===========================================================================
+
+COMO USAR
+---------
+ 1. Espete o pendrive em qualquer PC com Windows 10 ou 11 (64 bits).
+ 2. Duplo clique em INICIAR.bat
+ 3. Espere. Num PC novo a primeira abertura leva de 1 a 3 minutos, porque o
+    programa esta sendo lido do pendrive. Os pontinhos na tela mostram que
+    esta trabalhando - NAO arranque o pendrive achando que travou.
+    Quando ficar pronto, o navegador abre sozinho ja no painel - sem senha.
+ 4. Ao terminar: aperte Q na janela preta (ou rode PARAR.bat) e SO ENTAO
+    remova o pendrive.
+
+ Nao precisa instalar nada. Nao precisa ser administrador. Nada e' gravado
+ fora do pendrive: Python, Node e Firefox viajam dentro dele.
+
+
+POR QUE ISSO EXISTE
+-------------------
+ Mercado Livre e Amazon bloqueiam faixas de IP de datacenter (servidor/VPS)
+ antes mesmo de olhar o navegador. Eles liberam IP residencial. Como o que
+ importa e' de qual REDE a busca sai, levar o programa no pendrive e rodar
+ de dentro de uma casa e' o jeito mais barato de continuar funcionando.
+
+ Consequencia direta: rodar em wifi de escola, empresa ou cafe pode nao
+ funcionar. Rede domestica funciona.
+
+
+LOJAS QUE O PROGRAMA BUSCA
+--------------------------
+ Mercado Livre, Amazon, Shopee, AliExpress e KaBuM!.
+
+ No portal, escolha a loja no campo "Plataforma". "Todas as lojas" busca nas
+ cinco de uma vez e mistura os resultados na tabela, alternando entre elas.
+
+ KaBuM! e AliExpress respondem a uma requisicao simples e voltam em 1 ou 2
+ segundos. Mercado Livre, Amazon e Shopee precisam abrir o Firefox, entao
+ demoram mais.
+
+ A Shopee e' a mais rigorosa das cinco: ela barra IP que nao pareca de casa e
+ troca a busca por uma tela de verificacao (rede de empresa, escola ou orgao
+ publico cai nisso; abrir a janela visivel nao ajuda, a decisao e' pelo IP).
+ Quando acontece, o portal escreve o motivo na tela em vez de dizer so
+ "0 produtos".
+
+ Saida definitiva para a Shopee: cadastre o App ID e o App Secret da API de
+ Afiliados na tela de configuracao do portal (engrenagem > Shopee - API de
+ Afiliados). Com eles o programa usa a API oficial, que responde de qualquer
+ rede e ja entrega o link afiliado pronto. As chaves saem em
+ affiliate.shopee.com.br, secao Open API - e a conta precisa estar aprovada
+ para usa-la.
+
+ Os links de afiliado ficam em dois lugares, e os dois gravam no mesmo banco:
+ o painel "Integrador de Afiliados" do portal e a tela "Minhas Afiliacoes" do
+ bot. As duas telas mostram as MESMAS lojas e os mesmos campos - elas se
+ desenham a partir da mesma lista, entao tanto faz por onde voce configura.
+ Enquanto voce nao preencher, o programa publica no grupo o link normal da
+ loja - nada quebra por estar em branco.
+
+ Cada loja aceita ate quatro campos. Preencha so o que a sua rede de afiliados
+ pedir:
+   * Tag          - entra como parametro no proprio link do produto (Amazon).
+   * Link fixo    - substitui o link do produto pelo seu link de divulgacao.
+   * Modelo       - com {url} no meio, o link do produto entra no lugar. E' o
+                    formato de deeplink da Awin, da Shopee e do AliExpress.
+   * Parametros   - sub_id, utm_source e afins, anexados no fim de tudo.
+
+ Link que JA nasce afiliado nao e' reescrito. Se a busca da Shopee vier pela
+ API oficial, ela ja devolve o link com a sua comissao; o programa reconhece
+ isso e nao troca pelo modelo, so acrescenta os parametros extras. O mesmo vale
+ para os links /sec/ do Mercado Livre e magazinevoce do Magalu.
+
+
+PILOTO AUTOMATICO (posta sozinho)
+---------------------------------
+ Com o programa aberto (INICIAR.bat), o piloto roda em segundo plano: a cada
+ 10 a 20 minutos ele pega a proxima categoria do rodizio, busca cada termo
+ dela no Mercado Livre, Amazon, AliExpress e KaBuM!, escolhe as melhores
+ ofertas e publica no WhatsApp e no Telegram ja com o seu link de afiliado.
+ Uma volta completa pelas 11 categorias leva cerca de 2 a 3 horas.
+
+ Como ele escolhe:
+   * desconto de pelo menos 15%, com foto, preco acima de R$ 15, produto novo;
+   * o titulo precisa bater com o termo buscado (capa de iPhone nao passa
+     como iPhone);
+   * desconto acima de 85% e' descartado (quase sempre e' erro ou golpe);
+   * ele guarda o preco de tudo que ve. Depois de 3 observacoes do mesmo
+     produto, o "de/por" da loja so vale se o preco estiver no menor patamar
+     ja visto - senao conta a queda real em relacao a mediana. E' isso que
+     barra o "de R$ 999 por R$ 499" com preco "de" inflado;
+   * no maximo 4 por ciclo, 15 por hora e 2 da mesma loja por ciclo;
+   * o mesmo produto so volta depois de 3 dias, ou antes se o preco cair
+     mais 5% em relacao a ultima postagem;
+   * das 23h as 7h nao posta (so continua anotando precos).
+
+ Prioridade das lojas (PILOTO_PRIORIDADE_LOJAS, padrao
+ mercadolivre,amazon,kabum,aliexpress): entre as ofertas que passaram em todas
+ as regras, sai primeiro a da loja que vem antes na lista; a nota so desempata
+ dentro da mesma loja. Para misturar lojas em cada ciclo, use
+ PILOTO_MAX_POR_LOJA_NO_CICLO=1 (uma por loja, na ordem da prioridade).
+
+ Preco de mercado (contra o "de R$ 12.000 por R$ 7.000" inventado):
+   * Cada busca traz o mesmo produto de varias lojas. O piloto compara a
+     oferta com o que as OUTRAS lojas cobram (busca atual + ultimos 14 dias).
+   * Muito acima do tipico (PILOTO_TETO_MERCADO, padrao 1.3 = 30% acima, e
+     fora da curva): descartada. Muito abaixo de tudo: e' capa, peca ou
+     golpe, tambem descartada.
+   * Preco "de" acima desse teto: o desconto anunciado e' inventado. Vale o
+     desconto real contra o mercado ("X% ABAIXO DO MERCADO") e o post sai sem
+     o "De:".
+   * Usado, seminovo, recondicionado, vitrine e open box nao sao postados
+     (PILOTO_BLOQUEAR_USADOS=1).
+   * O log mostra quantas foram descartadas e por que.
+
+ Todas essas regras ficam no config.txt, secao "Piloto automatico", e valem
+ a partir do ciclo seguinte - nao precisa reiniciar. PILOTO_ATIVO=0 desliga.
+
+ No portal, o quadro "Piloto automatico" mostra o que ele esta fazendo, as
+ ultimas postagens e tem os botoes "Rodar agora" e "Pausar postagens".
+ O registro detalhado fica em logs\piloto.log.
+
+ Enquanto o piloto esta buscando, uma busca manual no portal pode responder
+ "ja existe uma busca em andamento": e' de proposito (nunca abrir dois
+ Firefox ao mesmo tempo). Espere alguns segundos e tente de novo.
+
+ Shopee esta fora do piloto ate a API de afiliados ser liberada. Quando for,
+ cadastre App ID e Secret na engrenagem do portal e acrescente shopee em
+ PILOTO_LOJAS.
+
+
+CACADOR DE CUPONS
+-----------------
+ Faz parte do piloto. A cada 2 horas ele le os cupons oficiais da KaBuM! (os
+ mesmos da pagina kabum.com.br/hotsite/cupons), descarta os vencidos e os que
+ nao da para garantir numa oferta isolada (so primeira compra, minimo de 2
+ produtos no carrinho, so no app) e baixa a lista de produtos em que cada
+ cupom vale.
+
+ Uma oferta so recebe o cupom se o produto estiver na lista oficial dele. O
+ preco final com o cupom entra na nota da oferta e a postagem sai com:
+   Use o cupom: ATTACK30 (30% OFF)
+   Com o cupom: ~ R$ 279,99
+   Cupom valido ate 16/10 as 10h
+ Logo antes de postar ele confere de novo se o cupom ainda esta valido.
+
+ Alem das ofertas da categoria que tenham cupom, ate 1 oferta por ciclo vem
+ direto das listas de cupom (PILOTO_CUPOM_POSTS_POR_CICLO).
+
+ AVISOS DE CUPOM: alem das ofertas, o piloto posta o cupom em si (ate 6 por
+ dia, 1 a cada 90 min, alternando KaBuM! e Mercado Livre), com o nome, o
+ desconto, a COMPRA MINIMA, o limite de desconto, a validade e o link da loja
+ ja com a sua afiliacao (Awin na KaBuM!, matt_tool no Mercado Livre).
+
+ ARTE DO CUPOM: cada aviso de cupom sai com uma imagem: a logo do canal
+ (arte\logo-grupo.png) ocupando a imagem toda e o icone da loja do cupom no
+ canto (arte\lojas\). As informacoes do cupom vao na legenda. Ao abrir, o
+ bot grava arte\exemplo-cupom.jpg para voce conferir o visual.
+
+ MERCADO LIVRE: a central de cupons so abre logada e os cupons nao tem
+ codigo - cada pessoa toca em "Aplicar" na propria conta. Rode uma vez o
+ LOGIN-MERCADOLIVRE.bat (abre o Firefox do programa; entre na conta e a
+ janela fecha sozinha). O piloto le so os cupons gerais de campanha das
+ categorias de tecnologia; os de "loja seguida" sao da sua conta e ficam de
+ fora. Se o painel avisar que o Mercado Livre pediu login, rode de novo.
+ Prefira uma conta secundaria: e' leitura automatica com sessao logada.
+
+ Amazon e AliExpress nao publicam lista de cupons por codigo (na Amazon o
+ cupom e' de "ativar na pagina"). Nelas vale o cupom que aparece no proprio
+ anuncio: o valor entra no preco e a postagem diz "ative o cupom na pagina
+ do produto".
+
+ O preco com cupom e' uma conta do programa (por isso o ~): a loja e' quem
+ aplica de verdade no carrinho. Nenhum cupom e' testado em compra real -
+ isso exigiria uma conta logada fazendo pedidos e arriscaria bloqueio.
+
+ Ajustes: secao "Cacador de cupons" do config.txt. Os cupons validos do
+ momento aparecem no quadro do piloto, no portal.
+
+
+PUBLICAR UM LINK QUE VOCE JA TEM EM MAOS
+----------------------------------------
+ Nem toda oferta aparece na busca. Quando o link chega por fora - indicacao de
+ outro grupo, promocao que voce viu no celular - use o campo "Publicar um link
+ direto", logo acima do formulario de busca no portal.
+
+ Cole o endereco e clique em Preparar. O programa abre a pagina, pega titulo,
+ preco e foto, aplica a afiliacao daquela loja e mostra o resultado antes de
+ publicar. Dai voce escolhe:
+
+   * Publicar no grupo   - manda com a legenda padrao.
+   * Editar antes        - abre o editor de legenda, igual ao da busca.
+
+ O campo verde "Link que vai para o grupo" e' o endereco de verdade que sera
+ publicado. Confira ele: se a loja nao tiver afiliacao configurada, aparece um
+ aviso amarelo dizendo que o link vai sair sem comissao. Isso NAO impede a
+ publicacao - so avisa, para voce nao descobrir o esquecimento semanas depois.
+
+ Uma pegadinha que o aviso pega: o campo "Link fixo" nao vale para link de
+ produto. Divulgando um produto especifico, trocar o endereco pelo seu link
+ geral apagaria justamente o produto, entao o programa nao faz isso - e avisa
+ que o link esta saindo cru. Para monetizar produto nessas lojas, use o campo
+ "Modelo" com {url} no meio (deeplink), nao o "Link fixo".
+
+
+O SITE ACOMPANHA OS GRUPOS (Tech Lobo)
+-------------------------------------
+ Tudo o que o bot publica nos grupos - pelo piloto automatico ou por uma
+ busca manual no portal - entra sozinho no catalogo do site, com o MESMO
+ link de afiliado que foi para o grupo. O site nao publica de novo: ele so
+ mostra o que o grupo ja recebeu (na home, em "Acabou de sair nos grupos").
+
+ Quem inicia a conversa e' sempre o pendrive: o site nunca precisa alcancar
+ este computador, que continua fechado para a internet.
+
+ Como ligar:
+   1. No servidor do site, defina INTEGRATION_API_TOKEN (32+ caracteres).
+   2. Aqui, no config.txt, preencha:
+        SITE_URL=https://seu-site.com.br
+      e no config.local.txt (ao lado do config.txt; crie se nao existir):
+        SITE_TOKEN=o mesmo valor do INTEGRATION_API_TOKEN
+      O config.local.txt fica fora do git: o token nunca vai para o GitHub.
+      (ESPELHAR_NO_SITE=1 e PILOTO_ATUALIZAR_SITE=1 ja vem ligados.)
+   3. Reinicie (PARAR.bat e INICIAR.bat).
+
+ O que acontece depois:
+   * Cada postagem que deu certo vai para o site em ate 30 segundos. Se o
+     site estiver fora do ar, ela espera numa fila (sobrevive a reinicio) e
+     vai quando ele voltar. Na janela do bot aparece "Espelho do site: ...".
+   * Quando o piloto ve de novo um produto que ja postou, o site recebe o
+     preco atual (PILOTO_ATUALIZAR_SITE=1). Oferta que some das buscas, ou que
+     ninguem confirma ha 7 dias de coleta, sai do ar sozinha no site. Pendrive
+     desligado nao apaga nada: so contam os dias em que ele trabalhou.
+   * Produto que o site nao consegue encaixar numa categoria (ou sem imagem)
+     fica em Admin > Oportunidades, marcado "Nos grupos", esperando voce.
+   * Oferta que voce descartou no painel do site continua fora dele.
+   * Cupons tambem vao: oferta postada com cupom aparece no site com o codigo
+     e a validade, e o aviso de cupom (KaBuM!, Mercado Livre) entra na pagina
+     de Cupons do site, com o mesmo link do grupo. Cupom vencido sai sozinho.
+   * Cupons de outras lojas (Amazon, AliExpress, Shopee, Magalu): elas nao
+     publicam lista de codigos, entao cadastre no painel do site (Admin >
+     Cupons, com "Divulgar nos grupos" marcado). O piloto busca essa lista a
+     cada ciclo e divulga um por vez, com a arte, na frente dos outros
+     cupons e respeitando PILOTO_AVISOS_CUPOM_POR_DIA e
+     PILOTO_AVISO_CUPOM_INTERVALO. Cada cupom sai uma vez.
+
+ENVIAR AS BUSCAS PARA A CAIXA DE ENTRADA DO SITE
+------------------------------------------------
+ Alem do que foi postado, voce pode mandar resultados de busca para a caixa
+ de entrada do site (Admin > Oportunidades), para aprovar a mao ou pelas
+ regras de la. Usa o mesmo SITE_URL e SITE_TOKEN.
+
+ Como usar:
+   * Botao "Enviar para o site", ao lado de "Postar Selecionados": manda as
+     ofertas marcadas (ou a tabela toda, se nenhuma estiver marcada).
+   * ENVIAR_PARA_SITE=1 no config.txt: toda busca ja vai sozinha.
+   * Linha de comando (para agendar no Agendador de Tarefas do Windows):
+       python main.py -c hardware --platform all --enviar-site
+
+ Uma mesma oferta enviada varias vezes nao duplica: o site atualiza o preco e
+ guarda o historico, que mostra se o preco e' mesmo o menor do mes.
+
+ O SITE_TOKEN so permite mandar ofertas para o site, nunca entrar no painel.
+ Mesmo assim, guarde-o como guarda o token do Telegram.
+
+
+PUBLICAR PELO PAINEL DO SITE (WhatsApp)
+---------------------------------------
+ Com SITE_URL e SITE_TOKEN preenchidos no config.txt, o bot pergunta ao site,
+ a cada 30 segundos, se ha publicacoes de WhatsApp esperando (Admin >
+ Publicacoes, ou "Aprovar e publicar" em Oportunidades). Ele envia cada uma
+ para o grupo configurado aqui no bot, com o mesmo intervalo de 6 a 14
+ segundos entre mensagens, e avisa o site se deu certo ou nao.
+
+ * O WhatsApp precisa estar conectado (QR Code lido) e com o grupo escolhido.
+ * Com o pendrive desligado, os pedidos esperam no site. Se passarem de 12 h
+   sem envio, expiram sozinhos: preco de ontem nao vai para o grupo.
+ * O Telegram e' enviado pelo proprio site (nao depende do pendrive).
+ * Na janela do bot aparece "Fila do site: ..." dizendo o que esta acontecendo
+   (conectado, enviando, token recusado, site fora do ar).
+
+
+SEM SENHA (e por que isso e' seguro aqui)
+-----------------------------------------
+ O portal abre direto, sem tela de login. Rodando so nesta maquina, a senha
+ nao protegeria nada mesmo: quem esta sentado no computador abre o arquivo
+ app\web_scraping\.env.local no Bloco de Notas e le a senha em dois cliques.
+
+ A protecao de verdade e' outra: o programa so aceita conexao de 127.0.0.1,
+ ou seja, do proprio computador. Ninguem do mesmo wifi alcanca.
+
+ Se voce trocar SOMENTE_ESTA_MAQUINA para 0 no config.txt, a tela de login
+ volta sozinha - nao da para ficar aberto na rede E sem senha ao mesmo tempo.
+
+
+REGRAS QUE IMPORTAM
+-------------------
+ * UMA COPIA POR VEZ. A sessao do WhatsApp mora no pendrive e o WhatsApp nao
+   aceita o mesmo aparelho conectado em dois lugares. Rodando em dois PCs ao
+   mesmo tempo, os dois caem e voce vai ter que ler o QR Code de novo.
+
+ * SEMPRE ENCERRE ANTES DE TIRAR. Arrancar o pendrive com o programa aberto
+   pode corromper o settings.db - que agora guarda TANTO os seus links de
+   afiliado QUANTO a sessao do WhatsApp. E' o PARAR.bat que solta o arquivo.
+
+   (A sessao do WhatsApp morava numa pasta com mais de mil arquivinhos, o pior
+   caso possivel para pendrive. Ela foi movida para dentro do settings.db na
+   primeira vez que voce abrir esta versao - nao precisa ler o QR Code de novo.
+   A pasta antiga app\bot-divulgar-produtos\auth_info_baileys\ fica ali como
+   backup e pode ser apagada depois que voce confirmar que conectou normal.)
+
+ * USE PORTA USB 3.0 (a azul). O navegador roda de dentro do pendrive; numa
+   porta USB 2.0 antiga a busca fica lenta.
+
+ * O PENDRIVE E' A CHAVE DE TUDO. Quem tiver ele em maos consegue publicar no
+   seu grupo de WhatsApp e ler seu token do Telegram - eles ficam em arquivo
+   de texto aqui dentro. Se for andar com ele por ai, vale ligar o BitLocker
+   To Go (clique direito no pendrive > Ativar BitLocker).
+
+
+SE NAO ABRIR
+------------
+ "O Windows protegeu o computador" (SmartScreen)
+     Clique em "Mais informacoes" > "Executar assim mesmo".
+
+ A janela preta pisca e some
+     Abra a pasta logs\ e leia bot.err.log e portal.err.log.
+
+ "Porta ocupada"
+     O INICIAR.bat ja procura outra porta sozinho. Se ainda assim falhar,
+     abra config.txt e troque PORTA_PORTAL=5000 por 5050.
+
+ O antivirus reclamou
+     E' o node.exe/python.exe rodando de midia removivel. Libere a pasta do
+     pendrive na lista de excecoes do antivirus.
+
+ Quero abrir do celular no mesmo wifi
+     Abra config.txt e troque SOMENTE_ESTA_MAQUINA=1 por 0. Faca isso apenas
+     em rede que voce confia. ATENCAO: nesse momento a tela de login volta a
+     ser exigida automaticamente - a senha esta no arquivo
+     app\web_scraping\.env.local, na linha PORTAL_PASSWORD.
+
+
+O QUE TEM AQUI DENTRO
+---------------------
+ INICIAR.bat / PARAR.bat  atalhos
+ config.txt               portas e preferencias
+ app\                     o programa
+ runtime\                 Python, Node e Firefox embarcados
+ logs\                    o que aconteceu na ultima execucao

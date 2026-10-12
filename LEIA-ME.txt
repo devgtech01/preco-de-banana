@@ -95,6 +95,25 @@ PILOTO AUTOMATICO (posta sozinho)
      mais 5% em relacao a ultima postagem;
    * das 23h as 7h nao posta (so continua anotando precos).
 
+ Prioridade das lojas (PILOTO_PRIORIDADE_LOJAS, padrao
+ mercadolivre,amazon,kabum,aliexpress): entre as ofertas que passaram em todas
+ as regras, sai primeiro a da loja que vem antes na lista; a nota so desempata
+ dentro da mesma loja. Para misturar lojas em cada ciclo, use
+ PILOTO_MAX_POR_LOJA_NO_CICLO=1 (uma por loja, na ordem da prioridade).
+
+ Preco de mercado (contra o "de R$ 12.000 por R$ 7.000" inventado):
+   * Cada busca traz o mesmo produto de varias lojas. O piloto compara a
+     oferta com o que as OUTRAS lojas cobram (busca atual + ultimos 14 dias).
+   * Muito acima do tipico (PILOTO_TETO_MERCADO, padrao 1.3 = 30% acima, e
+     fora da curva): descartada. Muito abaixo de tudo: e' capa, peca ou
+     golpe, tambem descartada.
+   * Preco "de" acima desse teto: o desconto anunciado e' inventado. Vale o
+     desconto real contra o mercado ("X% ABAIXO DO MERCADO") e o post sai sem
+     o "De:".
+   * Usado, seminovo, recondicionado, vitrine e open box nao sao postados
+     (PILOTO_BLOQUEAR_USADOS=1).
+   * O log mostra quantas foram descartadas e por que.
+
  Todas essas regras ficam no config.txt, secao "Piloto automatico", e valem
  a partir do ciclo seguinte - nao precisa reiniciar. PILOTO_ATIVO=0 desliga.
 
@@ -109,6 +128,123 @@ PILOTO AUTOMATICO (posta sozinho)
  Shopee esta fora do piloto ate a API de afiliados ser liberada. Quando for,
  cadastre App ID e Secret na engrenagem do portal e acrescente shopee em
  PILOTO_LOJAS.
+
+
+APRENDIZADO DE PRECOS (o que e promocao de verdade)
+---------------------------------------------------
+ Faz parte do piloto e melhora sozinho com o tempo. Tudo sai do historico
+ que ele ja grava (app\web_scraping\data\piloto.db); nao precisa de
+ internet, placa de video nem programa extra.
+
+ 1. Preco normal de cada produto. O historico vira um preco por dia (dez
+    leituras na mesma tarde contam como um dia so). Com 3 dias ou mais, o
+    piloto compara o preco de hoje com o preco normal dos ultimos 30 dias e
+    ignora o "de" da loja: so posta se a queda REAL passar de
+    PILOTO_DESCONTO_MIN. Na postagem, o "De:" vira o preco normal observado
+    quando o da loja esta inflado.
+ 2. Maquiagem de preco. Se o produto subiu nas ultimas 2 semanas e agora
+    "deu desconto", o preco normal considerado e o de ANTES da alta. Um
+    "50% OFF" que so devolve o preco ao que era nao passa. E o truque mais
+    comum na Black Friday, entao quanto mais historico ate la, melhor.
+ 3. Confianca no de/por de cada loja. A cada 6 horas ele compara, nos
+    produtos com historico, o desconto anunciado com a queda real e aprende
+    quanto do "de/por" de cada loja costuma ser verdade. Produto novo (sem
+    historico) passa a ter o desconto anunciado corrigido por esse numero.
+    Ate juntar 30 amostras de uma loja, vale o padrao antigo.
+ 4. Catalogo de produtos (titulo, loja, categoria, quando foi visto), que
+    sera a base da proxima etapa: estimar o preco justo de um produto nunca
+    visto a partir do titulo.
+
+ No portal, a linha "Aprendizado de precos" mostra quantos produtos ja tem
+ historico e a confianca de cada loja. No logs\piloto.log ele aparece como "Aprendizado:"
+ e os descartes novos sao "preco subiu antes do desconto" e "de/por da loja
+ costuma ser inflado". Para voltar a regra antiga: PILOTO_APRENDIZADO=0 no
+ config.txt.
+
+
+PORTAL EM ABAS (Piloto, Radar, Cupons, Buscar ofertas, Link direto, Afiliados)
+----------------------------------------------------------------------------
+ O portal abre na ultima aba usada.
+ - Piloto: status, ultimas postagens (com rolagem), cupons validos agora e
+   aprendizado de precos.
+ - Radar: todos os produtos que o piloto acompanha. Busca por nome, filtro por
+   loja, "abaixo do normal", "subiu antes do desconto", "ja postados", e
+   ordenacao por maior queda ou preco. Mostra o preco de hoje, o preco
+   normal observado, a variacao e o menor preco. Produtos que nao batem com
+   a busca (acessorio, usado) ficam escondidos; marque "Incluir fora da
+   busca" para ve-los. Produto sem titulo foi lido antes de 12/10: o nome
+   aparece na proxima vez que o piloto passar por ele.
+ - Cupons: cadastro manual (abaixo) e os cupons achados pelo cacador.
+ - Afiliados & canais: o antigo "Integrador de Afiliados".
+
+ Desconectar o WhatsApp: no quadro do WhatsApp (ou em Configuracoes) clique
+ em "Desconectar" e confirme. O numero sai do pareamento no celular e, em
+ alguns segundos, aparece um QR Code novo em Configuracoes para ligar outro
+ numero (ou o mesmo).
+
+
+CUPONS MANUAIS (aba Cupons)
+---------------------------
+ Para o cupom que voce achou (app da loja, e-mail, outro grupo), de qualquer
+ loja: codigo (ou "sem codigo" + como usar), desconto em % ou R$ ou frete
+ gratis, compra minima, desconto maximo, inicio, validade e link (vazio =
+ pagina da loja; o bot aplica a sua afiliacao).
+ - "Divulgar no grupo": o aviso entra na fila do piloto na frente dos outros
+   (respeita PILOTO_AVISO_CUPOM_INTERVALO e PILOTO_AVISOS_CUPOM_POR_DIA).
+ - "Divulgar agora": manda o aviso na hora, fora da fila.
+ - "Aplicar nas ofertas desta loja": o cupom entra no preco final e no texto
+   das ofertas da loja (respeitando compra minima e desconto maximo). Com
+   palavras (ex: ssd, memoria), so nos produtos com elas no titulo.
+ Vencido, ele para de valer sozinho. Ficam guardados em data\piloto.db.
+
+
+CACADOR DE CUPONS
+-----------------
+ Faz parte do piloto. A cada 2 horas ele le os cupons oficiais da KaBuM! (os
+ mesmos da pagina kabum.com.br/hotsite/cupons), descarta os vencidos e os que
+ nao da para garantir numa oferta isolada (so primeira compra, minimo de 2
+ produtos no carrinho, so no app) e baixa a lista de produtos em que cada
+ cupom vale.
+
+ Uma oferta so recebe o cupom se o produto estiver na lista oficial dele. O
+ preco final com o cupom entra na nota da oferta e a postagem sai com:
+   Use o cupom: ATTACK30 (30% OFF)
+   Com o cupom: ~ R$ 279,99
+   Cupom valido ate 16/10 as 10h
+ Logo antes de postar ele confere de novo se o cupom ainda esta valido.
+
+ Alem das ofertas da categoria que tenham cupom, ate 1 oferta por ciclo vem
+ direto das listas de cupom (PILOTO_CUPOM_POSTS_POR_CICLO).
+
+ AVISOS DE CUPOM: alem das ofertas, o piloto posta o cupom em si (ate 6 por
+ dia, 1 a cada 90 min, alternando KaBuM! e Mercado Livre), com o nome, o
+ desconto, a COMPRA MINIMA, o limite de desconto, a validade e o link da loja
+ ja com a sua afiliacao (Awin na KaBuM!, matt_tool no Mercado Livre).
+
+ ARTE DO CUPOM: cada aviso de cupom sai com uma imagem: a logo do canal
+ (arte\logo-grupo.png) ocupando a imagem toda e o icone da loja do cupom no
+ canto (arte\lojas\). As informacoes do cupom vao na legenda. Ao abrir, o
+ bot grava arte\exemplo-cupom.jpg para voce conferir o visual.
+
+ MERCADO LIVRE: a central de cupons so abre logada e os cupons nao tem
+ codigo - cada pessoa toca em "Aplicar" na propria conta. Rode uma vez o
+ LOGIN-MERCADOLIVRE.bat (abre o Firefox do programa; entre na conta e a
+ janela fecha sozinha). O piloto le so os cupons gerais de campanha das
+ categorias de tecnologia; os de "loja seguida" sao da sua conta e ficam de
+ fora. Se o painel avisar que o Mercado Livre pediu login, rode de novo.
+ Prefira uma conta secundaria: e' leitura automatica com sessao logada.
+
+ Amazon e AliExpress nao publicam lista de cupons por codigo (na Amazon o
+ cupom e' de "ativar na pagina"). Nelas vale o cupom que aparece no proprio
+ anuncio: o valor entra no preco e a postagem diz "ative o cupom na pagina
+ do produto".
+
+ O preco com cupom e' uma conta do programa (por isso o ~): a loja e' quem
+ aplica de verdade no carrinho. Nenhum cupom e' testado em compra real -
+ isso exigiria uma conta logada fazendo pedidos e arriscaria bloqueio.
+
+ Ajustes: secao "Cacador de cupons" do config.txt. Os cupons validos do
+ momento aparecem no quadro do piloto, no portal.
 
 
 PUBLICAR UM LINK QUE VOCE JA TEM EM MAOS
@@ -136,13 +272,12 @@ PUBLICAR UM LINK QUE VOCE JA TEM EM MAOS
  "Modelo" com {url} no meio (deeplink), nao o "Link fixo".
 
 
-ENVIAR AS OFERTAS PARA O SITE (Tech Wolf)
--------------------------------------------
- A busca continua saindo daqui, da internet de casa (as lojas barram IP de
- servidor). O site fica no servidor e recebe o que voce coletar na caixa de
- entrada do painel: Admin > Oportunidades. La ele aplica o SEU link de
- afiliado de cada loja (Admin > Afiliados) e, se voce quiser, coloca as
- ofertas no catalogo sozinho, conforme as regras que voce definir.
+O SITE ACOMPANHA OS GRUPOS (Tech Lobo)
+-------------------------------------
+ Tudo o que o bot publica nos grupos - pelo piloto automatico ou por uma
+ busca manual no portal - entra sozinho no catalogo do site, com o MESMO
+ link de afiliado que foi para o grupo. O site nao publica de novo: ele so
+ mostra o que o grupo ja recebeu (na home, em "Acabou de sair nos grupos").
 
  Quem inicia a conversa e' sempre o pendrive: o site nunca precisa alcancar
  este computador, que continua fechado para a internet.
@@ -151,8 +286,38 @@ ENVIAR AS OFERTAS PARA O SITE (Tech Wolf)
    1. No servidor do site, defina INTEGRATION_API_TOKEN (32+ caracteres).
    2. Aqui, no config.txt, preencha:
         SITE_URL=https://seu-site.com.br
+      e no config.local.txt (ao lado do config.txt; crie se nao existir):
         SITE_TOKEN=o mesmo valor do INTEGRATION_API_TOKEN
+      O config.local.txt fica fora do git: o token nunca vai para o GitHub.
+      (ESPELHAR_NO_SITE=1 e PILOTO_ATUALIZAR_SITE=1 ja vem ligados.)
    3. Reinicie (PARAR.bat e INICIAR.bat).
+
+ O que acontece depois:
+   * Cada postagem que deu certo vai para o site em ate 30 segundos. Se o
+     site estiver fora do ar, ela espera numa fila (sobrevive a reinicio) e
+     vai quando ele voltar. Na janela do bot aparece "Espelho do site: ...".
+   * Quando o piloto ve de novo um produto que ja postou, o site recebe o
+     preco atual (PILOTO_ATUALIZAR_SITE=1). Oferta que some das buscas, ou que
+     ninguem confirma ha 7 dias de coleta, sai do ar sozinha no site. Pendrive
+     desligado nao apaga nada: so contam os dias em que ele trabalhou.
+   * Produto que o site nao consegue encaixar numa categoria (ou sem imagem)
+     fica em Admin > Oportunidades, marcado "Nos grupos", esperando voce.
+   * Oferta que voce descartou no painel do site continua fora dele.
+   * Cupons tambem vao: oferta postada com cupom aparece no site com o codigo
+     e a validade, e o aviso de cupom (KaBuM!, Mercado Livre) entra na pagina
+     de Cupons do site, com o mesmo link do grupo. Cupom vencido sai sozinho.
+   * Cupons de outras lojas (Amazon, AliExpress, Shopee, Magalu): elas nao
+     publicam lista de codigos, entao cadastre no painel do site (Admin >
+     Cupons, com "Divulgar nos grupos" marcado). O piloto busca essa lista a
+     cada ciclo e divulga um por vez, com a arte, na frente dos outros
+     cupons e respeitando PILOTO_AVISOS_CUPOM_POR_DIA e
+     PILOTO_AVISO_CUPOM_INTERVALO. Cada cupom sai uma vez.
+
+ENVIAR AS BUSCAS PARA A CAIXA DE ENTRADA DO SITE
+------------------------------------------------
+ Alem do que foi postado, voce pode mandar resultados de busca para a caixa
+ de entrada do site (Admin > Oportunidades), para aprovar a mao ou pelas
+ regras de la. Usa o mesmo SITE_URL e SITE_TOKEN.
 
  Como usar:
    * Botao "Enviar para o site", ao lado de "Postar Selecionados": manda as
@@ -164,8 +329,8 @@ ENVIAR AS OFERTAS PARA O SITE (Tech Wolf)
  Uma mesma oferta enviada varias vezes nao duplica: o site atualiza o preco e
  guarda o historico, que mostra se o preco e' mesmo o menor do mes.
 
- O SITE_TOKEN so permite mandar ofertas para a caixa de entrada, nunca entrar
- no painel. Mesmo assim, guarde-o como guarda o token do Telegram.
+ O SITE_TOKEN so permite mandar ofertas para o site, nunca entrar no painel.
+ Mesmo assim, guarde-o como guarda o token do Telegram.
 
 
 PUBLICAR PELO PAINEL DO SITE (WhatsApp)

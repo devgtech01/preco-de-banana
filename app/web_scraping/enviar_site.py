@@ -1,5 +1,5 @@
 """
-Envio das ofertas coletadas para o site (Tech Wolf).
+Envio das ofertas coletadas para o site (Tech Lobo).
 
 O coletor roda numa rede de casa porque as lojas barram IP de servidor. O site
 fica num servidor. Por isso quem inicia a conversa é sempre este lado: o site
@@ -9,7 +9,7 @@ O site recebe as ofertas em /admin/oportunidades, aplica o link de afiliado de
 cada loja e, conforme as regras configuradas lá, coloca no catálogo.
 
 Configuração (config.txt do pendrive ou app/web_scraping/.env.local):
-    SITE_API_URL    endereço do site, ex.: https://techofertas.com.br
+    SITE_API_URL    endereço do site, ex.: https://techlobo.com.br
     SITE_API_TOKEN  o mesmo INTEGRATION_API_TOKEN configurado no site
     SITE_ENVIO_AUTOMATICO=1  envia sozinho depois de cada busca no portal
 """

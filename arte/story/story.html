@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Story Tech Ofertas</title>
+<!--
+  Modelo de story (1080x1920) do Tech Ofertas.
+  Os dados entram por window.DADOS (o gerar_story.py injeta antes de abrir a página):
+    titulo, preco, preco_de (opcional), loja, imagem, selo (opcional),
+    pagamento (opcional, ex: "no Pix"), cupom (opcional), cupom_desconto (opcional),
+    preco_com_cupom (opcional), data (ex: "12/10 · 16h"), chamada (opcional)
+  Áreas seguras do Instagram: nada importante acima de y=220 nem abaixo de y=1790
+  (a barra "Responder" cobre o pé do story; o sticker de link vai em 1742-1826).
+-->
+<style>
+  @font-face { font-family: 'Archivo Black'; src: url('fontes/archivo-black-latin-400-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 600; src: url('fontes/inter-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 800; src: url('fontes/inter-latin-800-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 900; src: url('fontes/inter-latin-900-normal.woff2') format('woff2'); }
+
+  :root {
+    --laranja: #ff7a00;
+    --laranja-claro: #ffa53d;
+    --creme: #f6efe4;
+    --cinza: #a59e94;
+    --fundo: #070605;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; background: var(--fundo); overflow: hidden; }
+  body { font-family: 'Inter', sans-serif; color: var(--creme); -webkit-font-smoothing: antialiased; }
+
+  .story {
+    position: relative; width: 1080px; height: 1920px; overflow: hidden;
+    background: url('img/fundo.jpg') center / cover no-repeat, var(--fundo);
+  }
+  /* brilho laranja atrás do produto + vinheta nas bordas */
+  .story::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 620px 520px at 540px 820px, rgba(255, 122, 0, 0.38), transparent 70%),
+      radial-gradient(ellipse 900px 700px at 540px 1500px, rgba(255, 122, 0, 0.10), transparent 70%),
+      linear-gradient(180deg, rgba(0,0,0,0.55) 0%, transparent 18%, transparent 80%, rgba(0,0,0,0.65) 100%);
+  }
+  /* faixas diagonais discretas */
+  .story::after {
+    content: ''; position: absolute; inset: 0; opacity: 0.06;
+    background: repeating-linear-gradient(135deg, #fff 0 2px, transparent 2px 46px);
+  }
+  .camada { position: absolute; inset: 0; z-index: 1; }
+
+  /* ---- topo: marca ---- */
+  .marca { position: absolute; top: 236px; left: 70px; right: 70px; display: flex; align-items: center; justify-content: space-between; }
+  .marca-esq { display: flex; align-items: center; gap: 22px; }
+  .marca img { width: 104px; height: 104px; object-fit: contain; filter: drop-shadow(0 6px 18px rgba(255,122,0,0.45)); }
+  .marca-nome { font-family: 'Archivo Black'; font-size: 46px; line-height: 0.95; letter-spacing: 1px; }
+  .marca-nome span { color: var(--laranja); display: block; font-size: 30px; letter-spacing: 7px; }
+  .loja {
+    display: flex; align-items: center; gap: 14px; padding: 10px 24px 10px 10px;
+    background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.14);
+    border-radius: 999px; font-weight: 800; font-size: 32px; backdrop-filter: blur(6px);
+  }
+  .loja img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: #fff; }
+
+  /* ---- selo ---- */
+  .selo {
+    position: absolute; top: 392px; left: 70px;
+    background: var(--laranja); color: #120800;
+    font-family: 'Archivo Black'; font-size: 40px; letter-spacing: 1px;
+    padding: 12px 30px 10px; border-radius: 14px; transform: rotate(-2deg);
+    box-shadow: 0 10px 0 #9c4700, 0 18px 40px rgba(255,122,0,0.45);
+  }
+
+  /* ---- produto ---- */
+  .produto {
+    position: absolute; top: 486px; left: 70px; width: 940px; height: 570px;
+    border-radius: 44px; background: #fff; overflow: hidden;
+    box-shadow: 0 0 0 4px rgba(255,122,0,0.9), 0 30px 80px rgba(0,0,0,0.6), 0 0 120px rgba(255,122,0,0.35);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .produto img { position: relative; width: 100%; height: 100%; object-fit: contain; padding: 30px; }
+  /* foto "de ambiente" (fundo que não é liso): a própria foto, desfocada, preenche o cartão */
+  .produto-fundo { position: absolute; inset: -40px; background-size: cover; background-position: center;
+                   filter: blur(28px) brightness(0.85) saturate(1.1); display: none; }
+  .produto.cheia .produto-fundo { display: block; }
+  .produto.cheia img { padding: 18px; filter: drop-shadow(0 18px 30px rgba(0,0,0,0.35)); }
+  .desconto {
+    position: absolute; top: 432px; right: 46px; width: 230px; height: 230px; z-index: 3;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 35% 30%, #ffc067, var(--laranja) 55%, #d65a00);
+    color: #120800; border-radius: 50%; transform: rotate(10deg);
+    box-shadow: 0 0 0 8px #070605, 0 0 0 12px var(--laranja), 0 20px 50px rgba(0,0,0,0.6);
+  }
+  .desconto b { font-family: 'Archivo Black'; font-size: 82px; line-height: 0.9; letter-spacing: -2px; }
+  .desconto small { font-family: 'Archivo Black'; font-size: 36px; line-height: 1; }
+
+  /* ---- texto ---- */
+  .titulo {
+    position: absolute; top: 1090px; left: 70px; right: 70px;
+    font-weight: 800; font-size: 50px; line-height: 1.16; text-align: center;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .precos { position: absolute; top: 1232px; left: 40px; right: 40px; text-align: center; }
+  .de { font-weight: 600; font-size: 40px; color: var(--cinza); }
+  .de s { text-decoration-thickness: 4px; text-decoration-color: rgba(255,122,0,0.85); }
+  .por { font-family: 'Archivo Black'; line-height: 1; margin-top: 4px; white-space: nowrap;
+         color: #fff; text-shadow: 0 0 40px rgba(255,122,0,0.55), 0 6px 0 rgba(0,0,0,0.35); }
+  .por .rs { font-size: 0.42em; vertical-align: 0.95em; margin-right: 10px; color: var(--laranja-claro); }
+  .por .cent { font-size: 0.45em; vertical-align: 0.95em; }
+  .info { font-weight: 800; font-size: 34px; color: var(--creme); margin-top: 6px; }
+  .info em { font-style: normal; color: var(--laranja-claro); }
+  .extra { margin-top: 16px; display: flex; justify-content: center; gap: 12px; flex-wrap: nowrap; }
+  .chip { font-weight: 800; font-size: 30px; padding: 8px 20px; border-radius: 999px; white-space: nowrap; }
+  .chip-economia { background: rgba(74, 222, 128, 0.14); color: #6ee79a; border: 2px solid rgba(74, 222, 128, 0.45); }
+  .chip-cupom { background: rgba(255,122,0,0.14); color: var(--laranja-claro); border: 2px dashed var(--laranja); }
+
+  /* ---- chamada e área do sticker de link ---- */
+  .chamada { position: absolute; top: 1640px; left: 70px; right: 70px; text-align: center; }
+  .chamada b { font-family: 'Archivo Black'; font-size: 44px; letter-spacing: 0.5px; }
+  .chamada b em { font-style: normal; color: var(--laranja); }
+  .chamada p { font-weight: 600; font-size: 28px; color: var(--cinza); margin-top: 6px; }
+  .seta { display: inline-block; animation: none; }
+  /* o sticker de link do Instagram fica entre 1700 e 1780 (mostrado só na prévia) */
+  .slot { position: absolute; top: 1748px; left: 340px; width: 400px; height: 84px; border-radius: 999px;
+          border: 3px dashed rgba(255,255,255,0.35); display: none; align-items: center; justify-content: center;
+          color: rgba(255,255,255,0.5); font-weight: 800; font-size: 26px; }
+  body.previa .slot { display: flex; }
+  .aviso { position: absolute; top: 1600px; left: 0; right: 0; text-align: center; font-weight: 600; font-size: 24px; color: rgba(246,239,228,0.55); }
+</style>
+</head>
+<body>
+<div class="story">
+  <div class="camada">
+    <div class="marca">
+      <div class="marca-esq">
+        <img src="img/logo.png" alt="">
+        <div class="marca-nome">TECH<span>OFERTAS</span></div>
+      </div>
+      <div class="loja" id="loja"><img id="lojaIcone" src="" alt=""><span id="lojaNome"></span></div>
+    </div>
+
+    <div class="selo" id="selo">ACHADO DO DIA</div>
+    <div class="desconto" id="desconto"><b id="descontoPct">-64%</b><small>OFF</small></div>
+
+    <div class="produto" id="produto"><div class="produto-fundo" id="produtoFundo"></div><img id="produtoImg" src="" alt=""></div>
+
+    <div class="titulo" id="titulo"></div>
+
+    <div class="precos">
+      <div class="de" id="deLinha">de <s id="de"></s></div>
+      <div class="por" id="por"></div>
+      <div class="info" id="info"></div>
+      <div class="extra" id="extra"></div>
+    </div>
+
+    <div class="chamada">
+      <b id="chamada">o link tá no <em>grupo</em> <span class="seta">👇</span></b>
+      <p id="subchamada">toque no link e entra de graça</p>
+    </div>
+    <div class="slot">sticker de link aqui</div>
+    <div class="aviso" id="aviso"></div>
+  </div>
+</div>
+
+<script>
+  const D = window.DADOS || {};
+  const LOJAS = { mercadolivre: ['mercado livre', 'mercadolivre', 'meli'], amazon: ['amazon'], kabum: ['kabum'],
+                  aliexpress: ['aliexpress', 'ali'], shopee: ['shopee'], magalu: ['magalu', 'magazine'] };
+  const NOMES = { mercadolivre: 'Mercado Livre', amazon: 'Amazon', kabum: 'KaBuM!', aliexpress: 'AliExpress', shopee: 'Shopee', magalu: 'Magalu' };
+
+  function chaveLoja(nome) {
+    const t = String(nome || '').toLowerCase();
+    return Object.keys(LOJAS).find(k => LOJAS[k].some(p => t.includes(p))) || null;
+  }
+  function num(v) {
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof v === 'number') return v;
+    let t = String(v).replace(/[^\d,.]/g, '');
+    if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+    const n = parseFloat(t);
+    return isNaN(n) ? null : n;
+  }
+  function brl(n) { return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+  const preco = num(D.preco_com_cupom) || num(D.preco);
+  const precoBase = num(D.preco);
+  const de = num(D.preco_de);
+  const referencia = de && de > preco ? de : (num(D.preco_com_cupom) && precoBase > preco ? precoBase : null);
+
+  // Loja
+  const k = chaveLoja(D.loja);
+  document.getElementById('lojaNome').textContent = k ? NOMES[k] : (D.loja || '');
+  if (k) document.getElementById('lojaIcone').src = 'img/lojas/' + k + '.png';
+  else document.getElementById('lojaIcone').remove();
+  if (!D.loja) document.getElementById('loja').remove();
+
+  // Selo
+  document.getElementById('selo').textContent = (D.selo || 'ACHADO DO DIA').toUpperCase();
+
+  // Produto
+  const img = document.getElementById('produtoImg');
+  img.src = D.imagem || '';
+  img.addEventListener('load', function () {
+    // Fundo do cartão = cor do canto da foto (foto com fundo cinza não fica "num quadro branco").
+    try {
+      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+      const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+      const px = (x, y) => g.getImageData(x, y, 1, 1).data;
+      const cantos = [px(3, 3), px(c.width - 4, 3), px(3, c.height - 4), px(c.width - 4, c.height - 4)];
+      const media = [0, 1, 2].map(i => Math.round(cantos.reduce((s, p) => s + p[i], 0) / 4));
+      const parecidos = cantos.every(p => [0, 1, 2].every(i => Math.abs(p[i] - media[i]) < 18));
+      if (parecidos) document.getElementById('produto').style.background = 'rgb(' + media.join(',') + ')';
+      else {
+        document.getElementById('produtoFundo').style.backgroundImage = 'url("' + img.src + '")';
+        document.getElementById('produto').classList.add('cheia');
+      }
+    } catch (e) { /* imagem de outro domínio: fica no fundo branco */ }
+    window.__pronto = true;
+  });
+  img.addEventListener('error', function () { window.__pronto = true; });
+  if (!D.imagem) window.__pronto = true;
+
+  // Desconto
+  const pct = referencia ? Math.round((1 - preco / referencia) * 100) : 0;
+  if (pct >= 5) document.getElementById('descontoPct').textContent = '-' + pct + '%';
+  else document.getElementById('desconto').remove();
+
+  // Título
+  document.getElementById('titulo').textContent = D.titulo || '';
+
+  // Preços
+  if (referencia) document.getElementById('de').textContent = 'R$ ' + brl(referencia);
+  else document.getElementById('deLinha').style.visibility = 'hidden';
+  const [inteiro, cent] = brl(preco).split(',');
+  const por = document.getElementById('por');
+  por.innerHTML = '<span class="rs">R$</span>' + inteiro + '<span class="cent">,' + cent + '</span>';
+  // Preço grande: encolhe até caber
+  let tamanho = 168;
+  por.style.fontSize = tamanho + 'px';
+  while (por.scrollWidth > 1000 && tamanho > 90) { tamanho -= 6; por.style.fontSize = tamanho + 'px'; }
+
+  const extra = document.getElementById('extra');
+  const chips = [];
+  if (referencia && referencia - preco >= 1) chips.push('<span class="chip chip-economia">economia de R$ ' + brl(referencia - preco) + '</span>');
+  if (D.cupom) chips.push('<span class="chip chip-cupom">🎟️ cupom ' + String(D.cupom).toUpperCase() + (D.cupom_desconto ? ' · ' + D.cupom_desconto : '') + '</span>');
+  extra.innerHTML = chips.join('');
+  // Chips numa linha só: encolhe se não couber
+  let cs = 30;
+  while (extra.scrollWidth > 1000 && cs > 22) { cs -= 2; extra.querySelectorAll('.chip').forEach(c => c.style.fontSize = cs + 'px'); }
+  const info = [];
+  if (num(D.preco_com_cupom)) info.push('<em>com o cupom</em>');
+  if (D.pagamento) info.push(D.pagamento);
+  if (info.length) document.getElementById('info').innerHTML = info.join(' · ');
+  else document.getElementById('info').remove();
+
+  // Título encolhe se ficar com 3 linhas
+  const t = document.getElementById('titulo');
+  let ts = 50;
+  t.style.webkitLineClamp = 'unset';
+  while (t.scrollHeight > 2 * ts * 1.16 + 4 && ts > 36) { ts -= 2; t.style.fontSize = ts + 'px'; }
+  t.style.webkitLineClamp = '2';
+
+  // Chamada e aviso
+  if (D.chamada) document.getElementById('chamada').innerHTML = D.chamada;
+  if (D.subchamada) document.getElementById('subchamada').textContent = D.subchamada;
+  document.getElementById('aviso').textContent =
+    (D.data ? 'preço de ' + D.data + ' · ' : '') + 'pode mudar a qualquer momento · link de afiliado';
+
+  if (D.previa) document.body.classList.add('previa');
+</script>
+</body>
+</html>

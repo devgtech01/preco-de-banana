@@ -98,6 +98,9 @@ function criar() {
             }
         },
 
+        async desconectar() {
+            throw new Error('A sessão do WhatsApp é do gateway externo: desconecte pelo painel dele.');
+        },
         async encerrar() { /* nada a fechar: a sessão não é nossa */ }
     };
 }

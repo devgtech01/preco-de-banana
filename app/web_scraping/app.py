@@ -409,6 +409,87 @@ def piloto_rodar_agora():
     return jsonify({'success': True})
 
 
+@app.route('/api/piloto/radar', methods=['GET'])
+@login_required
+def piloto_radar():
+    """Produtos monitorados pelo piloto (aba Radar), com filtro e paginação."""
+    import aprendizado
+    try:
+        con = piloto_automatico.conectar()
+        dados = aprendizado.radar(
+            con, piloto_automatico._agora(),
+            busca=request.args.get('q', ''), loja=request.args.get('loja', ''),
+            filtro=request.args.get('filtro', ''), ordem=request.args.get('ordem', 'recentes'),
+            limite=request.args.get('limite', 50, type=int), pagina=request.args.get('pagina', 1, type=int),
+            irrelevantes=request.args.get('irrelevantes') == '1',
+        )
+        con.close()
+        return jsonify({'success': True, **dados})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# --- Cupons manuais (aba Cupons) --------------------------------------------
+@app.route('/api/cupons/manuais', methods=['GET', 'POST'])
+@login_required
+def cupons_manuais():
+    import cupons
+    con = piloto_automatico.conectar()
+    try:
+        agora = piloto_automatico._agora()
+        if request.method == 'POST':
+            try:
+                ident = cupons.salvar_manual(con, request.get_json() or {}, agora)
+            except cupons.CupomInvalido as e:
+                return jsonify({'success': False, 'error': str(e)}), 400
+            piloto_automatico.log(f"🎟️ Cupom manual salvo pelo portal (#{ident}).")
+            return jsonify({'success': True, 'id': ident, 'cupons': cupons.listar_manuais(con, agora)})
+        return jsonify({'success': True, 'cupons': cupons.listar_manuais(con, agora),
+                        'lojas': list(cupons.LOJAS_MANUAIS)})
+    finally:
+        con.close()
+
+
+@app.route('/api/cupons/manuais/<int:ident>', methods=['DELETE'])
+@login_required
+def cupom_manual_remover(ident):
+    import cupons
+    con = piloto_automatico.conectar()
+    try:
+        ok = cupons.remover_manual(con, ident)
+        return jsonify({'success': ok, 'error': None if ok else 'Cupom não encontrado.'}), (200 if ok else 404)
+    finally:
+        con.close()
+
+
+@app.route('/api/cupons/manuais/<int:ident>/divulgar', methods=['POST'])
+@login_required
+def cupom_manual_divulgar(ident):
+    """Posta o aviso do cupom agora nos grupos (fora da fila do piloto)."""
+    try:
+        ok, detalhe = piloto_automatico.divulgar_cupom_manual(ident)
+        if ok:
+            return jsonify({'success': True, 'canais': detalhe})
+        return jsonify({'success': False, 'error': detalhe}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# --- WhatsApp: desconectar o número ------------------------------------------
+@app.route('/api/wa-logout', methods=['POST'])
+@login_required
+def wa_logout():
+    """Desfaz o pareamento do WhatsApp no bot; um QR Code novo aparece em seguida."""
+    bot_url = get_active_bot_url()
+    try:
+        resp = requests.post(f"{bot_url}/api/wa-logout", timeout=20, headers=bot_headers())
+        return jsonify(resp.json()), resp.status_code
+    except requests.exceptions.ConnectionError:
+        return jsonify({'success': False, 'error': f'Servidor do Bot ({bot_url}) não respondeu.'}), 503
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/site-status', methods=['GET'])
 @login_required
 def site_status():

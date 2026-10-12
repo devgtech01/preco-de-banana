@@ -9,14 +9,32 @@ Um ciclo:
   1. pega a próxima categoria do rodízio (ordem de prioridade do categories.py);
   2. busca cada termo dela em cada loja de PILOTO_LOJAS;
   3. grava o preço de tudo que viu no histórico (data/piloto.db);
-  4. dá nota a cada produto e escolhe os melhores, respeitando os limites;
-  5. publica pelo bot (/api/post-deal), que aplica o link de afiliado da loja;
-  6. dorme um intervalo aleatório entre PILOTO_INTERVALO_MIN e _MAX minutos.
+  4. dá nota a cada produto e escolhe os melhores, respeitando os limites e a
+     ordem de prioridade das lojas (PILOTO_PRIORIDADE_LOJAS);
+  5. publica pelo bot (/api/post-deal), que aplica o link de afiliado da loja
+     e manda a mesma oferta para o catálogo do site (espelho dos grupos);
+  6. avisa o site do novo preço dos produtos já postados que viu de novo;
+     (antes de tudo, o caçador de cupons — cupons.py — relê os cupons oficiais
+     e confere em quais ofertas cada um vale; o cupom entra no preço final e
+     o código vai na postagem);
+  7. dorme um intervalo aleatório entre PILOTO_INTERVALO_MIN e _MAX minutos.
 
 Por que guardar histórico: "de R$ 999 por R$ 499" é muitas vezes um preço
-"de" inflado. Depois de ver o mesmo produto algumas vezes, o piloto compara o
-preço de hoje com a mediana do que ele mesmo observou e só confia no desconto
-anunciado quando o preço está de fato no menor patamar já visto.
+"de" inflado. Depois de ver o mesmo produto em alguns dias diferentes, o piloto
+compara o preço de hoje com o preço normal que ele mesmo observou e só confia
+no desconto anunciado quando o preço está de fato no menor patamar já visto.
+O aprendizado (aprendizado.py) resume o histórico em um preço por dia, pega o
+"sobe antes, dá desconto depois" e aprende o quanto o "de/por" de cada loja
+costuma mentir (PILOTO_APRENDIZADO=0 volta à regra antiga).
+
+Preço de mercado: produto novo ainda não tem histórico, e é aí que entra o
+anúncio de "40% OFF" num PS5 de R$ 7.400 (o preço "de" inventado pelo
+vendedor). Cada busca traz o mesmo produto de várias lojas; o piloto guarda o
+preço de tudo que é relevante por termo e compara a oferta com o que as OUTRAS
+lojas cobram (mediana e quartis dos últimos dias). Oferta muito acima do
+mercado é descartada; preço "de" acima do teto do mercado é tratado como
+inventado (o desconto passa a ser o real, contra o mercado, e o "De:" some da
+postagem); preço muito abaixo de tudo é acessório ou anúncio falso.
 
 As regras ficam no config.txt (seção "Piloto automático") e são relidas a cada
 ciclo: dá para mudar sem reiniciar.
@@ -41,6 +59,9 @@ from urllib.parse import parse_qs, unquote, urlparse, urlunparse
 
 import requests
 
+import aprendizado
+import cupons
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.abspath(os.path.join(BASE_DIR, "..", ".."))
 CONFIG_TXT = os.path.join(RAIZ, "config.txt")
@@ -51,7 +72,8 @@ PADROES = {
     "PILOTO_ATIVO": "1",
     "PILOTO_INTERVALO_MIN": "10",
     "PILOTO_INTERVALO_MAX": "20",
-    "PILOTO_LOJAS": "mercadolivre,amazon,aliexpress,kabum",
+    "PILOTO_LOJAS": "mercadolivre,amazon,kabum,aliexpress",
+    "PILOTO_PRIORIDADE_LOJAS": "mercadolivre,amazon,kabum,aliexpress",
     "PILOTO_CATEGORIAS": "todas",
     "PILOTO_CATEGORIAS_POR_CICLO": "1",
     "PILOTO_ITENS_POR_LOJA": "8",
@@ -63,6 +85,18 @@ PADROES = {
     "PILOTO_SILENCIO": "23-7",
     "PILOTO_REPOSTAR_DIAS": "3",
     "PILOTO_QUEDA_PARA_REPOSTAR": "5",
+    "PILOTO_ATUALIZAR_SITE": "1",
+    "PILOTO_TETO_MERCADO": "1.3",
+    "PILOTO_BLOQUEAR_USADOS": "1",
+    "PILOTO_CUPONS": "1",
+    "PILOTO_CUPONS_HORAS": "2",
+    "PILOTO_CUPOM_POSTS_POR_CICLO": "1",
+    "PILOTO_CUPOM_PAGINAS": "10",
+    "PILOTO_CUPONS_ML": "1",
+    "PILOTO_CUPONS_ML_CATEGORIAS": cupons.ML_CATEGORIAS_PADRAO,
+    "PILOTO_AVISOS_CUPOM_POR_DIA": "6",
+    "PILOTO_AVISO_CUPOM_INTERVALO": "90",
+    "PILOTO_APRENDIZADO": "1",
 }
 
 # Desconto acima disso quase sempre é erro de cadastro ou preço "de" fictício.
@@ -75,6 +109,27 @@ CONFIANCA_ANUNCIADO = {"aliexpress": 0.6}
 # Observações mínimas para o histórico passar a valer mais que o "de/por".
 MIN_OBSERVACOES = 3
 JANELA_HISTORICO_DIAS = 30
+
+# Preço de mercado: produtos diferentes (e de pelo menos 2 lojas) que a mesma
+# busca precisa ter mostrado para a comparação valer, e a janela considerada.
+MIN_MERCADO = 6
+MIN_MERCADO_OUTRAS_LOJAS = 4
+JANELA_MERCADO_DIAS = 14
+# Abaixo desta fração da mediana (e fora da curva) é peça, acessório ou golpe.
+PISO_MERCADO = 0.35
+
+# Uma busca (uma loja, um termo) leva de 2 a 60 s. Passou disto, o navegador
+# travou: o piloto desiste dela e segue o ciclo, em vez de ficar parado horas.
+TEMPO_MAX_BUSCA_S = 240
+# Loja que travou fica de fora por este tempo (o Firefox dela pode seguir preso).
+PAUSA_LOJA_TRAVADA_MIN = 30
+_lojas_travadas: dict[str, float] = {}
+
+# Usado, recondicionado, vitrine: o grupo divulga produto novo.
+USADO_RE = re.compile(
+    r"\b(usad[oa]s?|semi ?nov[oa]s?|recondicionad[oa]s?|refurbished|renewed|vitrine|open ?box|"
+    r"reembalad[oa]s?|mostruario|com defeito|para pecas|retirada de pecas)\b"
+)
 
 # Palavras de acessório: "capa iphone 15" não é a oferta de "iphone 15".
 ACESSORIOS = {
@@ -104,20 +159,24 @@ _thread: threading.Thread | None = None
 # Configuração e log
 # ---------------------------------------------------------------------------
 def ler_config() -> dict:
-    """config.txt tem prioridade sobre o padrão; variável de ambiente sobre ambos."""
+    """
+    config.txt tem prioridade sobre o padrão; config.local.txt (fora do git)
+    sobre o config.txt; variável de ambiente sobre todos.
+    """
     cfg = dict(PADROES)
-    try:
-        with open(CONFIG_TXT, encoding="utf-8-sig") as arquivo:
-            for linha in arquivo:
-                texto = linha.strip()
-                if not texto or texto.startswith("#") or "=" not in texto:
-                    continue
-                chave, valor = texto.split("=", 1)
-                chave = chave.strip()
-                if chave in cfg:
-                    cfg[chave] = valor.strip()
-    except OSError:
-        pass
+    for caminho in (CONFIG_TXT, os.path.join(RAIZ, "config.local.txt")):
+        try:
+            with open(caminho, encoding="utf-8-sig") as arquivo:
+                for linha in arquivo:
+                    texto = linha.strip()
+                    if not texto or texto.startswith("#") or "=" not in texto:
+                        continue
+                    chave, valor = texto.split("=", 1)
+                    chave = chave.strip()
+                    if chave in cfg and valor.strip():
+                        cfg[chave] = valor.strip()
+        except OSError:
+            pass
     for chave in cfg:
         if os.getenv(chave):
             cfg[chave] = os.getenv(chave)
@@ -177,6 +236,12 @@ def conectar(caminho: str | None = None) -> sqlite3.Connection:
         CREATE TABLE IF NOT EXISTS estado (chave TEXT PRIMARY KEY, valor TEXT);
         """
     )
+    # Termo, loja e "serve de referência": base do preço de mercado por busca.
+    colunas = {linha[1] for linha in con.execute("PRAGMA table_info(precos)")}
+    for coluna, tipo in (("termo", "TEXT"), ("loja", "TEXT"), ("ref", "INTEGER")):
+        if coluna not in colunas:
+            con.execute(f"ALTER TABLE precos ADD COLUMN {coluna} {tipo}")
+    con.execute("CREATE INDEX IF NOT EXISTS idx_precos_termo ON precos(termo, visto_em)")
     # A primeira versão gravou horários 4h adiantados (ver _agora). Uma vez só,
     # traz de volta o que ficou "no futuro".
     if not con.execute("SELECT 1 FROM estado WHERE chave = 'fuso_corrigido'").fetchone():
@@ -185,6 +250,8 @@ def conectar(caminho: str | None = None) -> sqlite3.Connection:
         con.execute("UPDATE postados SET postado_em = datetime(postado_em, '-4 hours') WHERE postado_em > ?", (limite,))
         con.execute("INSERT OR REPLACE INTO estado (chave, valor) VALUES ('fuso_corrigido', '1')")
         con.commit()
+    cupons.preparar_tabelas(con)
+    aprendizado.preparar_tabelas(con)
     return con
 
 
@@ -305,8 +372,8 @@ def _tokens(texto: str) -> list[str]:
 
 
 def relevante(titulo: str, termo: str) -> bool:
-    if not termo:
-        return True
+    if not termo or termo.startswith("cupom "):
+        return True  # produto da lista oficial do cupom: a loja já disse que vale
     tokens_titulo = set(_tokens(titulo))
     tokens_termo = _tokens(termo)
     if not tokens_termo:
@@ -339,66 +406,187 @@ def historico(con, chave: str, antes_de: datetime) -> list[float]:
     return [l[0] for l in linhas if l[0] and l[0] > 0]
 
 
-def avaliar(prod: dict, hist: list[float], cfg: dict) -> dict | None:
+def usado(prod: dict) -> bool:
+    """Condição do anúncio ou título dizendo usado, seminovo, recondicionado, vitrine..."""
+    if str(prod.get("condicao") or "").lower().startswith("usad"):
+        return True
+    return bool(USADO_RE.search(_normalizar(prod.get("titulo") or "")))
+
+
+def _loja(prod: dict) -> str:
+    return str(prod.get("plataforma") or "").strip().lower()
+
+
+def mercado_para(precos_do_termo: dict[str, tuple[float, str]], chave: str, loja: str) -> dict | None:
+    """
+    Referência de preço para uma oferta: o que as OUTRAS lojas cobram na mesma
+    busca (se houver o bastante); senão, todas as lojas juntas. None quando a
+    amostra é pequena demais para dizer alguma coisa.
+    """
+    outros = [(p, l) for c, (p, l) in precos_do_termo.items() if c != chave]
+    de_fora = [p for p, l in outros if l != loja]
+    if len(de_fora) >= MIN_MERCADO_OUTRAS_LOJAS:
+        amostra = de_fora
+    elif len(outros) >= MIN_MERCADO and len({l for _, l in outros}) >= 2:
+        amostra = [p for p, _ in outros]
+    else:
+        return None
+    if len(amostra) < 4:
+        return None
+    q1, mediana, q3 = statistics.quantiles(sorted(amostra), n=4)
+    return {"mediana": mediana, "q1": q1, "q3": q3, "n": len(amostra)}
+
+
+def avaliar(prod: dict, hist: list[float], cfg: dict, cupom: dict | None = None,
+            mercado: dict | None = None, descartes: dict | None = None,
+            ref: dict | None = None, confianca_loja: tuple[float, bool] | None = None) -> dict | None:
     """
     Devolve {nota, desconto, motivo, destaque} ou None se a oferta não passa.
 
     Sem histórico suficiente vale o desconto que a loja anuncia. Com histórico,
     o desconto anunciado só é aceito se o preço estiver no menor patamar já
     visto; senão vale a queda real em relação à mediana observada.
+
+    Com cupom válido, a conta usa o preço final com o cupom aplicado (o
+    histórico guarda o preço sem cupom, então o cupom aparece como queda real).
+
+    Com `mercado` (ver mercado_para), a oferta também precisa caber no preço
+    que as outras lojas praticam. `descartes` conta os motivos para o log.
+
+    Com `ref` (aprendizado.referencia: produto com alguns dias de histórico),
+    o preço normal e o menor preço vêm do resumo por dia, já descontada a
+    alta suspeita antes da promoção. `confianca_loja` = (peso, aprendido): o
+    quanto o "de/por" da loja costuma ser verdade; aprendido, ele também
+    decide se a oferta sem histórico passa.
     """
+    def descartar(motivo: str) -> None:
+        if descartes is not None:
+            descartes[motivo] = descartes.get(motivo, 0) + 1
+
     preco = prod.get("preco")
     antes = prod.get("preco_original")
     if not isinstance(preco, (int, float)) or preco <= 0:
         return None
+    final_cupom = (cupom or {}).get("preco_com_cupom")
+    if isinstance(final_cupom, (int, float)) and 0 < final_cupom < preco:
+        if not (isinstance(antes, (int, float)) and antes > preco):
+            antes = preco
+        preco = final_cupom
+    else:
+        final_cupom = None
     if preco < _num(cfg, "PILOTO_PRECO_MIN"):
         return None
     if not prod.get("imagem_url") or not prod.get("titulo"):
         return None
-    if str(prod.get("condicao") or "").lower().startswith("usad"):
+    if str(cfg.get("PILOTO_BLOQUEAR_USADOS")).strip() != "0" and usado(prod):
+        descartar("usado ou recondicionado")
         return None
 
     anunciado = (antes - preco) / antes if isinstance(antes, (int, float)) and antes > preco else 0.0
     minimo_exigido = _num(cfg, "PILOTO_DESCONTO_MIN") / 100
 
+    # Preço de mercado: o que as outras lojas cobram na mesma busca.
+    de_confiavel = True
+    contra_mercado = None
+    if mercado:
+        m, q1, q3 = mercado["mediana"], mercado["q1"], mercado["q3"]
+        iqr = max(0.0, q3 - q1)
+        teto = max(m * _num(cfg, "PILOTO_TETO_MERCADO", 1.0), q3 + 1.5 * iqr)
+        if preco > teto:
+            descartar("acima do preço de mercado")
+            return None
+        if preco < min(m * PISO_MERCADO, q1 - 1.5 * iqr):
+            descartar("barato demais para a busca (acessório ou anúncio falso)")
+            return None
+        contra_mercado = (m - preco) / m if m > 0 else 0.0
+        # Preço "de" acima do teto do mercado: o desconto anunciado é inventado.
+        if isinstance(antes, (int, float)) and antes > teto:
+            de_confiavel = False
+            anunciado = max(0.0, contra_mercado)
+
     real = None
     no_minimo = False
-    if len(hist) >= MIN_OBSERVACOES:
+    maquiado = False
+    if ref and ref.get("normal", 0) > 0:
+        real = (ref["normal"] - preco) / ref["normal"]
+        # Menor preço só conta se for de fato abaixo do normal: produto que
+        # nunca muda de preço está sempre "no mínimo" e isso não é promoção.
+        no_minimo = preco <= ref["minimo"] * 1.01 and real >= 0.03
+        maquiado = bool(ref.get("maquiado"))
+    elif len(hist) >= MIN_OBSERVACOES:
         mediana = statistics.median(hist)
         real = (mediana - preco) / mediana if mediana > 0 else 0.0
         no_minimo = preco <= min(hist) * 1.01
 
+    de_exibir = None
     if real is None:
-        efetivo, motivo = anunciado, "desconto anunciado"
+        efetivo, motivo = anunciado, ("desconto anunciado" if de_confiavel else "abaixo do preço de mercado")
+    elif ref:
+        # Com dias de histórico vale só a queda real contra o preço normal: o
+        # "de" da loja não entra na conta (é ele que costuma ser inflado).
+        efetivo = real
+        motivo = (f"menor preço em {ref['dias']} dias" if no_minimo
+                  else f"abaixo do preço normal de {ref['dias']} dias")
+        # Na postagem, o "De:" passa a ser o preço normal observado quando o
+        # da loja está muito acima dele (ou não existe).
+        if not (isinstance(antes, (int, float)) and antes <= ref["normal"] * 1.15):
+            de_exibir = round(ref["normal"], 2)
     elif no_minimo:
         efetivo = max(anunciado, real)
         motivo = "menor preço já visto" + (" + desconto anunciado" if anunciado > real else "")
     else:
         efetivo, motivo = real, "comparado ao histórico"
+    if maquiado:
+        motivo += "; preço normal de antes da alta recente"
 
-    if efetivo < minimo_exigido or efetivo > DESCONTO_SUSPEITO:
+    # Sem histórico próprio, o peso do "de/por" da loja (aprendido ou fixo).
+    peso, peso_aprendido = 1.0, False
+    if real is None:
+        if confianca_loja:
+            peso, peso_aprendido = confianca_loja
+        else:
+            loja = str(prod.get("plataforma") or "").lower().replace(" ", "")
+            peso = next((p for nome, p in CONFIANCA_ANUNCIADO.items() if nome in loja), 1.0)
+    # Desconto estimado de verdade: o anunciado vezes o quanto a loja costuma cumprir.
+    estimado = efetivo * peso if (real is None and peso_aprendido and de_confiavel) else efetivo
+
+    if estimado < minimo_exigido or efetivo > DESCONTO_SUSPEITO:
+        if not de_confiavel:
+            descartar('preço "de" inventado')
+        elif maquiado:
+            descartar("preço subiu antes do desconto")
+        elif estimado < efetivo and efetivo >= minimo_exigido:
+            descartar('"de/por" da loja costuma ser inflado')
         return None
 
     nota = efetivo * 100
     if real is None:
-        loja = str(prod.get("plataforma") or "").lower().replace(" ", "")
-        nota *= next((peso for nome, peso in CONFIANCA_ANUNCIADO.items() if nome in loja), 1.0)
+        nota *= peso
     if no_minimo:
         nota += 5
     if prod.get("frete_gratis"):
         nota += 3
-    if prod.get("cupom"):
-        nota += 3
+    if final_cupom:
+        nota += 4
+    elif cupom or prod.get("cupom"):
+        nota += 2
     if re.search(r"mais vendido|escolha da amazon|top vendas", str(prod.get("destaque") or ""), re.I):
         nota += 2
 
     pct = round(efetivo * 100)
-    if anunciado >= efetivo - 0.005 and anunciado > 0:
+    if final_cupom:
+        destaque = f"{pct}% OFF COM CUPOM"
+    elif not de_confiavel:
+        destaque = f"{pct}% ABAIXO DO MERCADO"
+    elif de_exibir or (anunciado >= efetivo - 0.005 and anunciado > 0):
         destaque = f"{pct}% OFF"
     else:
         destaque = f"PREÇO CAIU {pct}%"
 
-    return {"nota": round(nota, 2), "desconto": efetivo, "motivo": motivo, "destaque": destaque}
+    return {"nota": round(nota, 2), "desconto": efetivo, "motivo": motivo, "destaque": destaque,
+            "preco_final": round(preco, 2), "de_confiavel": de_confiavel, "maquiado": maquiado,
+            "de_exibir": de_exibir,
+            "mercado": round(mercado["mediana"], 2) if mercado else None}
 
 
 # ---------------------------------------------------------------------------
@@ -422,6 +610,22 @@ def postados_na_ultima_hora(con, agora: datetime) -> int:
     ).fetchone()[0]
 
 
+def prioridade_das_lojas(cfg: dict):
+    """
+    Posição da loja na ordem de PILOTO_PRIORIDADE_LOJAS (0 = primeira). Loja
+    fora da lista vem depois de todas. Compara pelo nome sem espaço nem acento:
+    "Amazon Brasil" casa com "amazon", "KaBuM!" com "kabum".
+    """
+    ordem = [_normalizar(p).replace(" ", "") for p in str(cfg.get("PILOTO_PRIORIDADE_LOJAS") or "").split(",")]
+    ordem = [p for p in ordem if p]
+
+    def posicao(plataforma: str) -> int:
+        nome = _normalizar(plataforma).replace(" ", "")
+        return next((i for i, chave in enumerate(ordem) if chave in nome), len(ordem))
+
+    return posicao
+
+
 def escolher(candidatos: list[dict], con, cfg: dict, agora: datetime) -> list[dict]:
     vagas_hora = int(_num(cfg, "PILOTO_MAX_POR_HORA")) - postados_na_ultima_hora(con, agora)
     vagas = min(int(_num(cfg, "PILOTO_POSTS_POR_CICLO")), vagas_hora)
@@ -433,8 +637,16 @@ def escolher(candidatos: list[dict], con, cfg: dict, agora: datetime) -> list[di
     por_loja: dict[str, int] = {}
     termos_usados: set[str] = set()
     assinaturas: set[str] = set()
+    max_de_cupom = int(_num(cfg, "PILOTO_CUPOM_POSTS_POR_CICLO"))
+    de_cupom = 0
 
-    ordenados = sorted(candidatos, key=lambda c: c["avaliacao"]["nota"], reverse=True)
+    # Primeiro a loja (ordem de PILOTO_PRIORIDADE_LOJAS), depois a nota: uma
+    # oferta do Mercado Livre que passou em todas as regras sai antes de uma
+    # do AliExpress, mesmo que esta tenha desconto maior.
+    posicao = prioridade_das_lojas(cfg)
+    ordenados = sorted(
+        candidatos, key=lambda c: (posicao(c["produto"].get("plataforma") or ""), -c["avaliacao"]["nota"])
+    )
 
     # Duas passadas: a primeira exige variedade de termo (um produto por busca),
     # a segunda preenche as vagas que sobrarem sem essa exigência.
@@ -449,12 +661,17 @@ def escolher(candidatos: list[dict], con, cfg: dict, agora: datetime) -> list[di
                 continue
             if exigir_termo_novo and cand["termo"] in termos_usados:
                 continue
+            veio_de_cupom = cand["termo"].startswith("cupom ")
+            if veio_de_cupom and de_cupom >= max_de_cupom:
+                continue
             assinatura = assinatura_titulo(cand["produto"].get("titulo", ""))
             if assinatura in assinaturas:
                 continue
-            if not pode_repostar(con, cand["chave"], cand["produto"]["preco"], cfg, agora):
+            preco_ref = cand["avaliacao"].get("preco_final") or cand["produto"]["preco"]
+            if not pode_repostar(con, cand["chave"], preco_ref, cfg, agora):
                 continue
             escolhidos.append(cand)
+            de_cupom += int(veio_de_cupom)
             por_loja[loja] = por_loja.get(loja, 0) + 1
             termos_usados.add(cand["termo"])
             assinaturas.add(assinatura)
@@ -501,6 +718,34 @@ def proximas_categorias(con, cfg: dict) -> list[str]:
     return escolhidas
 
 
+def _buscar_com_limite(loja: str, termo: str, itens: int, segundos: float) -> tuple[list, str | None]:
+    """
+    Roda a busca numa thread à parte e espera no máximo `segundos`. Se o
+    navegador travar (aconteceu em 12/10: a Amazon ficou 1h45 presa ao abrir o
+    Firefox), levanta TimeoutError e o ciclo continua com as outras lojas.
+    """
+    import marketplaces
+
+    resultado: dict = {}
+
+    def alvo():
+        try:
+            scraper = marketplaces.criar_scraper(loja, headless=True)
+            resultado["itens"] = scraper.search_products(query=termo, max_pages=1, max_items=itens) or []
+            resultado["erro"] = scraper.last_error
+        except Exception as exc:  # repassado para quem chamou
+            resultado["exc"] = exc
+
+    t = threading.Thread(target=alvo, name=f"busca-{loja}", daemon=True)
+    t.start()
+    t.join(segundos)
+    if t.is_alive():
+        raise TimeoutError(f"a busca travou (mais de {int(segundos)} s sem responder)")
+    if "exc" in resultado:
+        raise resultado["exc"]
+    return resultado.get("itens", []), resultado.get("erro")
+
+
 def buscar_categoria(chave_categoria: str, cfg: dict, trava: threading.Lock | None) -> list[tuple[str, dict]]:
     """Devolve [(termo, produto_bruto)] de todas as lojas para todos os termos."""
     import categories
@@ -513,16 +758,23 @@ def buscar_categoria(chave_categoria: str, cfg: dict, trava: threading.Lock | No
 
     for termo in info.get("termos", []):
         for loja in lojas:
+            pausa_ate = _lojas_travadas.get(loja, 0)
+            if pausa_ate > time.time():
+                continue
             _fase("buscando", f"{info['emoji']} {info['nome']} › '{termo}' em {marketplaces.rotulo(loja)}")
             # Espera a busca manual do portal terminar, se houver uma.
             if trava is not None and not trava.acquire(timeout=900):
                 log(f"Pulei '{termo}' em {loja}: a busca manual do portal não liberou.")
                 continue
             try:
-                scraper = marketplaces.criar_scraper(loja, headless=True)
-                itens = scraper.search_products(query=termo, max_pages=1, max_items=itens_por_loja) or []
-                if not itens and scraper.last_error:
-                    log(f"{marketplaces.rotulo(loja)} sem resultado para '{termo}': {scraper.last_error[:160]}")
+                itens, erro = _buscar_com_limite(loja, termo, itens_por_loja, TEMPO_MAX_BUSCA_S)
+                if not itens and erro:
+                    log(f"{marketplaces.rotulo(loja)} sem resultado para '{termo}': {erro[:160]}")
+            except TimeoutError as exc:
+                _lojas_travadas[loja] = time.time() + PAUSA_LOJA_TRAVADA_MIN * 60
+                log(f"⚠️ {marketplaces.rotulo(loja)}: {exc} em '{termo}'. Pulei a loja pelos próximos "
+                    f"{PAUSA_LOJA_TRAVADA_MIN} min e segui o ciclo.")
+                itens = []
             except Exception as exc:
                 log(f"Erro buscando '{termo}' em {loja}: {exc}")
                 itens = []
@@ -553,10 +805,15 @@ def publicar(produto: dict) -> tuple[bool, str]:
         return False, str(exc)
 
 
-def processar(brutos: list[tuple[str, dict]], categoria_nome: str, con, cfg: dict, agora: datetime) -> list[dict]:
+def processar(brutos: list[tuple[str, dict]], categoria_nome: str, con, cfg: dict, agora: datetime,
+              registrar_precos: bool = True) -> list[dict]:
     """Grava histórico e devolve os candidatos aprovados (sem publicar)."""
     candidatos: list[dict] = []
     vistos: set[str] = set()
+    descartes: dict[str, int] = {}
+    mercados = precos_de_mercado(brutos, con, agora)
+    usar_aprendizado = str(cfg.get("PILOTO_APRENDIZADO")).strip() != "0"
+    aprendido = aprendizado.carregar(con) if usar_aprendizado else {}
     for termo, item in brutos:
         ident = identificar(item.get("link", ""), item.get("plataforma", ""))
         if not ident:
@@ -567,22 +824,79 @@ def processar(brutos: list[tuple[str, dict]], categoria_nome: str, con, cfg: dic
         vistos.add(chave)
 
         preco = item.get("preco")
-        hist = historico(con, chave, agora)
-        if isinstance(preco, (int, float)) and preco > 0:
-            con.execute("INSERT INTO precos (chave, preco, visto_em) VALUES (?, ?, ?)", (chave, float(preco), _iso(agora)))
+        if usar_aprendizado:
+            ref, hist = aprendizado.referencia_do_produto(con, chave, agora)
+        else:
+            ref, hist = None, historico(con, chave, agora)
+        eh_relevante = relevante(item.get("titulo", ""), termo)
+        if registrar_precos and isinstance(preco, (int, float)) and preco > 0:
+            de = item.get("preco_original")
+            de = float(de) if isinstance(de, (int, float)) and de > preco else None
+            con.execute(
+                "INSERT INTO precos (chave, preco, visto_em, termo, loja, ref, de) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (chave, float(preco), _iso(agora), termo, _loja(item), int(eh_relevante and not usado(item)), de),
+            )
+            aprendizado.registrar_produto(con, chave, item, link, termo, categoria_nome, agora)
 
-        if not relevante(item.get("titulo", ""), termo):
+        if not eh_relevante:
             continue
-        avaliacao = avaliar(item, hist, cfg)
+        cupom = None
+        if str(cfg.get("PILOTO_CUPONS")).strip() != "0":
+            try:
+                cupom = cupons.melhor_cupom(con, chave, item, agora)
+            except Exception as exc:
+                log(f"Cupom: falha ao conferir {chave} ({exc})")
+        mercado = None
+        if termo in mercados:
+            mercado = mercado_para(mercados[termo], chave, _loja(item))
+        avaliacao = avaliar(item, hist, cfg, cupom, mercado, descartes,
+                            ref=ref, confianca_loja=aprendizado.confianca(aprendido, chave) if usar_aprendizado else None)
         if not avaliacao:
             continue
 
         produto = dict(item)
         produto["link"] = link
         produto["categoria"] = categoria_nome
+        produto["cupom_info"] = cupom
         candidatos.append({"chave": chave, "termo": termo, "produto": produto, "avaliacao": avaliacao})
     con.commit()
+    if descartes:
+        log("Descartadas: " + ", ".join(f"{n} {motivo}" for motivo, n in sorted(descartes.items(), key=lambda x: -x[1])) + ".")
     return candidatos
+
+
+def precos_de_mercado(brutos: list[tuple[str, dict]], con, agora: datetime) -> dict[str, dict[str, tuple[float, str]]]:
+    """
+    Por termo de busca: {chave: (preço, loja)} de tudo que é relevante e novo,
+    juntando esta busca com os últimos JANELA_MERCADO_DIAS dias (o preço mais
+    recente de cada produto). As listas de cupom ("cupom X") misturam produtos
+    de todo tipo e ficam de fora.
+    """
+    atuais: dict[str, dict[str, tuple[float, str]]] = {}
+    for termo, item in brutos:
+        if termo.startswith("cupom "):
+            continue
+        preco = item.get("preco")
+        if not isinstance(preco, (int, float)) or preco <= 0:
+            continue
+        if not relevante(item.get("titulo", ""), termo) or usado(item):
+            continue
+        ident = identificar(item.get("link", ""), item.get("plataforma", ""))
+        if ident:
+            atuais.setdefault(termo, {})[ident[0]] = (float(preco), _loja(item))
+
+    desde = _iso(agora - timedelta(days=JANELA_MERCADO_DIAS))
+    saida: dict[str, dict[str, tuple[float, str]]] = {}
+    for termo, desta_busca in atuais.items():
+        anteriores: dict[str, tuple[float, str]] = {}
+        for chave, preco, loja in con.execute(
+            "SELECT chave, preco, loja FROM precos WHERE termo = ? AND ref = 1 AND visto_em >= ? ORDER BY visto_em",
+            (termo, desde),
+        ):
+            anteriores[chave] = (preco, loja or "")
+        anteriores.update(desta_busca)
+        saida[termo] = anteriores
+    return saida
 
 
 def montar_postagem(cand: dict) -> dict:
@@ -590,16 +904,185 @@ def montar_postagem(cand: dict) -> dict:
     original = p.get("preco_original")
     if not (isinstance(original, (int, float)) and original > p["preco"]):
         original = None
+    if not cand["avaliacao"].get("de_confiavel", True):
+        original = None  # preço "de" inventado: não vai para o grupo nem para o site
+    if cand["avaliacao"].get("de_exibir") and cand["avaliacao"]["de_exibir"] > p["preco"]:
+        original = cand["avaliacao"]["de_exibir"]  # preço normal que o piloto observou
+    cupom = p.get("cupom_info") or {}
     return {
         "titulo": p.get("titulo"),
         "preco": p.get("preco"),
         "preco_original": original,
-        "cupom": p.get("cupom"),
+        # Nome do cupom na postagem (o bot monta o bloco 🎟️ com estes campos).
+        "cupom": cupom.get("codigo"),
+        "cupom_desconto": cupom.get("desconto"),
+        "preco_com_cupom": cupom.get("preco_com_cupom"),
+        "cupom_validade": cupom.get("validade"),
+        "cupom_como": cupom.get("como"),
+        "cupom_minimo": cupom.get("minimo"),
+        # Fim do cupom (horário de Brasília), para o site saber até quando mostrá-lo.
+        "cupom_fim": cupom.get("fim"),
         "destaque": cand["avaliacao"]["destaque"],
         "link": p.get("link"),
         "imagem_url": p.get("imagem_url"),
         "plataforma": p.get("plataforma"),
+        # O bot não usa estes; repassa ao site junto com a postagem (categoria
+        # do catálogo e busca que encontrou a oferta).
+        "categoria": p.get("categoria"),
+        "termo_pesquisado": cand["termo"],
+        "frete_gratis": bool(p.get("frete_gratis")),
     }
+
+
+# ---------------------------------------------------------------------------
+# Site: preço dos produtos já postados
+# ---------------------------------------------------------------------------
+def vistos_ja_postados(brutos: list[tuple[str, dict]], categoria_nome: str, con, agora: datetime) -> list[dict]:
+    """
+    Produtos que o piloto já postou (nos últimos 30 dias) e que este ciclo viu
+    de novo. Indo para o site, o preço do catálogo acompanha a loja e a oferta
+    que some das buscas sai do ar sozinha. O resto do que foi visto não vai:
+    o site mostra o que passou pelos grupos.
+    """
+    desde = _iso(agora - timedelta(days=JANELA_HISTORICO_DIAS))
+    postados = {l[0] for l in con.execute("SELECT DISTINCT chave FROM postados WHERE postado_em >= ?", (desde,))}
+    if not postados:
+        return []
+    saida: list[dict] = []
+    vistos: set[str] = set()
+    for termo, item in brutos:
+        ident = identificar(item.get("link", ""), item.get("plataforma", ""))
+        if not ident:
+            continue
+        chave, link = ident
+        preco = item.get("preco")
+        if chave not in postados or chave in vistos or not isinstance(preco, (int, float)) or preco <= 0:
+            continue
+        vistos.add(chave)
+        produto = dict(item)
+        produto["link"] = link
+        produto["termo_pesquisado"] = termo
+        produto["categoria"] = categoria_nome
+        saida.append(produto)
+    return saida
+
+
+def atualizar_site(itens: list[dict]) -> None:
+    """Em segundo plano: o ciclo não espera o site (que pode estar fora do ar)."""
+    if not itens:
+        return
+    import enviar_site
+
+    if not enviar_site.configurado():
+        return
+
+    def _enviar():
+        resumo = enviar_site.enviar_oportunidades(itens, origem="piloto")
+        log(f"{enviar_site.descrever(resumo)} ({len(itens)} produto(s) já postado(s) visto(s) de novo)")
+
+    threading.Thread(target=_enviar, name="piloto-site", daemon=True).start()
+
+
+def atualizar_cupons_se_preciso(con, cfg: dict) -> bool:
+    """Relê os cupons oficiais a cada PILOTO_CUPONS_HORAS. Devolve True se releu."""
+    agora = _agora()
+    ultima = estado_get(con, "cupons_atualizados", "")
+    horas = _num(cfg, "PILOTO_CUPONS_HORAS", 0.25)
+    if ultima and ultima > _iso(agora - timedelta(hours=horas)):
+        return False
+    _fase("buscando", "🎟️ caçando cupons da KaBuM!")
+    try:
+        r = cupons.atualizar_kabum(con, agora, identificar, log, int(_num(cfg, "PILOTO_CUPOM_PAGINAS", 1)))
+        log(f"🎟️ Cupons KaBuM!: {r['cupons_usaveis']} válidos para ofertas "
+            f"({', '.join(r['codigos'][:12]) or 'nenhum'}), {r['produtos']} produtos conferidos.")
+    except Exception as exc:
+        log(f"🎟️ Não consegui ler os cupons da KaBuM! agora ({exc}). Tento no próximo ciclo.")
+        return False
+    if str(cfg.get("PILOTO_CUPONS_ML")).strip() != "0":
+        _fase("buscando", "🎟️ caçando cupons do Mercado Livre")
+        try:
+            r = cupons.atualizar_ml(con, agora, cfg.get("PILOTO_CUPONS_ML_CATEGORIAS") or cupons.ML_CATEGORIAS_PADRAO)
+            estado_set(con, "ml_sessao", "ok")
+            log(f"🎟️ Cupons Mercado Livre: {r['cupons_ativos']} cupons gerais de tecnologia "
+                f"({'; '.join(r['titulos'][:6]) or 'nenhum'}).")
+        except cupons.SessaoMLExpirada as exc:
+            estado_set(con, "ml_sessao", str(exc))
+            log(f"🎟️ Mercado Livre: {exc}")
+        except Exception as exc:
+            log(f"🎟️ Não consegui ler os cupons do Mercado Livre agora ({exc}).")
+    estado_set(con, "cupons_atualizados", _iso(agora))
+    return True
+
+
+def sincronizar_cupons_do_site(con) -> None:
+    """Cupons cadastrados no painel do site entram na fila de avisos. Falha não para o ciclo."""
+    try:
+        r = cupons.sincronizar_do_site(con, _agora())
+    except Exception as exc:
+        log(f"🎟️ Não consegui buscar os cupons do painel do site ({exc}).")
+        return
+    if r is None:
+        return
+    # Só escreve no log quando a fila do painel muda (o ciclo roda a cada poucos minutos).
+    resumo = f"{r['cupons']}:{','.join(r['lojas'])}"
+    if resumo != estado_get(con, "cupons_site", ""):
+        estado_set(con, "cupons_site", resumo)
+        if r["cupons"]:
+            log(f"🎟️ Cupons do painel do site esperando divulgação: {r['cupons']} ({', '.join(r['lojas'])}).")
+
+
+def postar_aviso_de_cupom(con, cfg: dict) -> bool:
+    """Um anúncio de cupom (código, desconto, compra mínima, validade e link afiliado da loja)."""
+    agora = _agora()
+    if postados_na_ultima_hora(con, agora) >= int(_num(cfg, "PILOTO_MAX_POR_HORA")):
+        return False
+    cupom = cupons.proximo_aviso(con, agora, _num(cfg, "PILOTO_AVISO_CUPOM_INTERVALO"),
+                                 int(_num(cfg, "PILOTO_AVISOS_CUPOM_POR_DIA")))
+    if not cupom:
+        return False
+    # Cupom da planilha da KaBuM! é reconferido; o cadastrado por você (portal
+    # ou painel do site) já foi conferido por você.
+    if (cupom["loja"] == "KaBuM!" and cupom.get("fonte") not in ("site", "manual")
+            and not cupons.ainda_valido({"origem": "lista oficial", **cupom}, agora)):
+        return False
+    return _publicar_aviso(con, cupom)[0]
+
+
+def divulgar_cupom_manual(ident: int) -> tuple[bool, str]:
+    """Botão "Divulgar agora" da aba Cupons: posta o aviso na hora, fora da fila."""
+    con = conectar()
+    m = cupons.manual_por_id(con, ident, _agora())
+    if not m:
+        return False, "cupom não encontrado"
+    if m["situacao"] == "vencido":
+        return False, "cupom vencido"
+    with _trava_estado:
+        anterior = (_estado["fase"], _estado["detalhe"])
+    try:
+        return _publicar_aviso(con, cupons.manual_como_cupom(m))
+    finally:
+        with _trava_estado:
+            if _estado["fase"] == "publicando":   # devolve o status do piloto ao que era
+                _estado["fase"], _estado["detalhe"] = anterior
+
+
+def _publicar_aviso(con, cupom: dict) -> tuple[bool, str]:
+    pedido = cupons.montar_aviso(cupom)
+    _fase("publicando", pedido["titulo"][:80])
+    ok, detalhe = publicar(pedido)
+    if not ok:
+        log(f"❌ Aviso de cupom falhou: {pedido['titulo']} — {detalhe}")
+        return False, detalhe
+    cupons.registrar_aviso(con, cupom, detalhe, _agora())
+    con.execute(
+        "INSERT INTO postados (chave, plataforma, titulo, preco, nota, link, canais, postado_em) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (f"cupom:{cupom['loja']}:{cupom['codigo']}", cupom["loja"], pedido["titulo"], None, None,
+         cupom["link"], detalhe, _iso(_agora())),
+    )
+    con.commit()
+    log(f"🎟️ Aviso de cupom postado em {detalhe}: {pedido['titulo']} "
+        f"({'compra mínima ' + cupons.brl(cupom['minimo']) if cupom.get('minimo') else 'sem compra mínima'})")
+    return True, detalhe
 
 
 def rodar_ciclo(trava: threading.Lock | None = None, con=None) -> dict:
@@ -608,8 +1091,17 @@ def rodar_ciclo(trava: threading.Lock | None = None, con=None) -> dict:
     inicio = _agora()
     silencio = em_silencio(cfg, inicio)
     resumo = {"categorias": [], "vistos": 0, "candidatos": 0, "publicados": 0, "silencio": silencio}
+    cupons_ligados = str(cfg.get("PILOTO_CUPONS")).strip() != "0"
+    cupons_novos = cupons_ligados and atualizar_cupons_se_preciso(con, cfg)
+    if str(cfg.get("PILOTO_APRENDIZADO")).strip() != "0":
+        try:
+            novos = aprendizado.recalcular_se_preciso(con, inicio)
+            if novos:
+                log("🧠 Aprendizado: " + aprendizado.descrever(novos))
+        except Exception as exc:
+            log(f"🧠 Aprendizado: falha ao recalcular ({exc}). Sigo com o que já sabia.")
 
-    for chave_cat in proximas_categorias(con, cfg):
+    for indice_cat, chave_cat in enumerate(proximas_categorias(con, cfg)):
         import categories
 
         info = categories.CATEGORIAS[chave_cat]
@@ -620,6 +1112,16 @@ def rodar_ciclo(trava: threading.Lock | None = None, con=None) -> dict:
         brutos = buscar_categoria(chave_cat, cfg, trava)
         agora = _agora()
         candidatos = processar(brutos, info["nome"], con, cfg, agora)
+        if cupons_ligados and indice_cat == 0:
+            # Ofertas puxadas das listas oficiais de cupom concorrem junto com
+            # as da categoria (no máximo PILOTO_CUPOM_POSTS_POR_CICLO por ciclo).
+            de_cupom = processar(cupons.candidatos_de_cupons(con, agora), "Cupons", con, cfg, agora,
+                                 registrar_precos=cupons_novos)
+            if de_cupom:
+                log(f"{len(de_cupom)} oferta(s) das listas de cupom passaram nas regras.")
+            candidatos += de_cupom
+        if str(cfg.get("PILOTO_ATUALIZAR_SITE")).strip() != "0":
+            atualizar_site(vistos_ja_postados(brutos, info["nome"], con, agora))
         resumo["categorias"].append(chave_cat)
         resumo["vistos"] += len(brutos)
         resumo["candidatos"] += len(candidatos)
@@ -640,23 +1142,46 @@ def rodar_ciclo(trava: threading.Lock | None = None, con=None) -> dict:
         gap_max = float(os.getenv("PUBLISH_MAX_DELAY", "14"))
         for indice, cand in enumerate(escolhidos):
             p = cand["produto"]
+            info_cupom = p.get("cupom_info")
+            if info_cupom and not cupons.ainda_valido(info_cupom, _agora()):
+                log(f"Cupom {info_cupom.get('codigo')} expirou antes da postagem: pulei {p.get('titulo', '')[:50]}")
+                continue
             _fase("publicando", p.get("titulo", "")[:80])
             ok, detalhe = publicar(montar_postagem(cand))
             if ok:
                 con.execute(
                     "INSERT INTO postados (chave, plataforma, titulo, preco, nota, link, canais, postado_em) "
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    (cand["chave"], p.get("plataforma"), p.get("titulo"), p.get("preco"),
+                    (cand["chave"], p.get("plataforma"), p.get("titulo"),
+                     cand["avaliacao"].get("preco_final") or p.get("preco"),
                      cand["avaliacao"]["nota"], p.get("link"), detalhe, _iso(_agora())),
                 )
                 con.commit()
                 resumo["publicados"] += 1
+                txt_cupom = ""
+                if info_cupom:
+                    txt_cupom = f" + cupom {info_cupom.get('codigo') or info_cupom.get('desconto')}"
+                    if info_cupom.get("preco_com_cupom"):
+                        txt_cupom += f" = R$ {info_cupom['preco_com_cupom']:.2f}"
                 log(f"✅ Postado em {detalhe}: [{p.get('plataforma')}] {p.get('titulo', '')[:70]} "
-                    f"R$ {p['preco']:.2f} ({cand['avaliacao']['destaque']}, nota {cand['avaliacao']['nota']})")
+                    f"R$ {p['preco']:.2f}{txt_cupom} ({cand['avaliacao']['destaque']}, nota {cand['avaliacao']['nota']})")
             else:
                 log(f"❌ Falhou: {p.get('titulo', '')[:60]} — {detalhe}")
             if indice < len(escolhidos) - 1:
                 time.sleep(random.uniform(gap_min, gap_max))
+
+    # Anúncio de cupom: no máximo 1 por ciclo, respeitando o intervalo e o
+    # limite diário (PILOTO_AVISO_CUPOM_INTERVALO / PILOTO_AVISOS_CUPOM_POR_DIA).
+    if cupons_ligados and not silencio and estado_get(con, "pausado", "0") != "1":
+        sincronizar_cupons_do_site(con)
+        try:
+            if resumo["publicados"]:
+                time.sleep(random.uniform(float(os.getenv("PUBLISH_MIN_DELAY", "6")),
+                                          float(os.getenv("PUBLISH_MAX_DELAY", "14"))))
+            if postar_aviso_de_cupom(con, cfg):
+                resumo["publicados"] += 1
+        except Exception as exc:
+            log(f"🎟️ Erro no aviso de cupom: {exc}")
 
     return resumo
 
@@ -762,6 +1287,9 @@ def status() -> dict:
         "produtos_monitorados": produtos,
         "ultimos": ultimos,
         "regras": {k: cfg[k] for k in PADROES},
+        "cupons": cupons.resumo(con, agora),
+        "ml_sessao": estado_get(con, "ml_sessao", ""),
+        "aprendizado": aprendizado.carregar(con),
     })
     return info
 

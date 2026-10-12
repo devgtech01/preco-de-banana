@@ -26,16 +26,22 @@ SOMENTE_ESTA_MAQUINA=1
 #     publicaria no seu grupo de WhatsApp.
 PEDIR_SENHA=0
 
-# --- Site (Tech Wolf) -----------------------------------------------------
-# Para onde vao as ofertas coletadas. O site aplica o seu link de afiliado e
-# mostra tudo no painel, em Oportunidades.
-# Endereco do site, sem barra no final. Ex.: https://techofertas.com.br
-SITE_URL=
+# --- Site (Tech Lobo) -----------------------------------------------------
+# O site mostra no catalogo as ofertas que o bot publica nos grupos, com o
+# mesmo link de afiliado. Painel do site: Admin > Oportunidades.
+# Endereco do site, sem barra no final. Ex.: https://techlobo.com.br
+SITE_URL=http://localhost:3000
 # O mesmo valor de INTEGRATION_API_TOKEN configurado no servidor do site.
-# Quem tiver este token consegue mandar ofertas para a sua caixa de entrada.
+# Quem tiver este token consegue mandar ofertas para o seu site. Por isso ele
+# NAO fica aqui (este arquivo vai para o git): coloque no config.local.txt,
+# ao lado deste, que fica fora do git. Valor la vale mais que o daqui.
 SITE_TOKEN=
-# 1 = toda busca no portal ja vai para o site sozinha. 0 = so pelo botao
-# "Enviar para o site".
+# 1 = toda oferta publicada nos grupos (pelo piloto ou pelo portal) entra
+#     sozinha no catalogo do site, com o mesmo link de afiliado do grupo.
+# 0 = nao manda (o site fica so com o que voce cadastrar la).
+ESPELHAR_NO_SITE=1
+# 1 = toda busca manual no portal tambem vai para a caixa de entrada do site
+#     (Oportunidades), para voce aprovar. 0 = so pelo botao "Enviar para o site".
 ENVIAR_PARA_SITE=0
 
 # --- Piloto automatico ----------------------------------------------------
@@ -48,7 +54,13 @@ PILOTO_ATIVO=1
 PILOTO_INTERVALO_MIN=10
 PILOTO_INTERVALO_MAX=20
 # Lojas buscadas. Shopee fica de fora ate a API de afiliados ser liberada.
-PILOTO_LOJAS=mercadolivre,amazon,aliexpress,kabum
+PILOTO_LOJAS=mercadolivre,amazon,kabum,aliexpress
+# Prioridade na hora de escolher o que postar: entre as ofertas que passaram
+# em todas as regras, sai primeiro a da loja que vem antes nesta lista (a nota
+# so desempata dentro da mesma loja). Loja fora da lista fica por ultimo.
+# Com PILOTO_MAX_POR_LOJA_NO_CICLO=1, cada ciclo posta a melhor oferta de cada
+# loja, na ordem: primeiro Mercado Livre, depois Amazon, e assim por diante.
+PILOTO_PRIORIDADE_LOJAS=mercadolivre,amazon,kabum,aliexpress
 # Categorias em rodizio: "todas" ou chaves separadas por virgula
 # (tecnologia,notebooks,smartphones,hardware,perifericos,games,audio,
 #  smart_home,wearables,tablets,tv_video).
@@ -70,3 +82,43 @@ PILOTO_SILENCIO=23-7
 # Y% em relacao a ultima postagem.
 PILOTO_REPOSTAR_DIAS=3
 PILOTO_QUEDA_PARA_REPOSTAR=5
+# Preco de mercado: cada busca traz o mesmo produto de varias lojas. Oferta
+# acima de X vezes o preco tipico das OUTRAS lojas (e fora da curva) e'
+# descartada, e preco "de" acima desse teto e' tratado como inventado (o post
+# sai sem o "De:" e com o desconto real). Ex.: 1.3 = ate 30% acima do tipico.
+PILOTO_TETO_MERCADO=1.3
+# 1 = nao posta produto usado, seminovo, recondicionado, vitrine ou open box.
+PILOTO_BLOQUEAR_USADOS=1
+# 1 = aprendizado de precos ligado: com 3+ dias de historico o piloto usa o
+#     preco normal que ele mesmo observou (um preco por dia), pega o "sobe
+#     antes, da desconto depois" e aprende o quanto o de/por de cada loja
+#     costuma ser real. Detalhes no LEIA-ME.txt. 0 = regra antiga.
+PILOTO_APRENDIZADO=1
+# 1 = quando o piloto ve de novo um produto que ja postou, avisa o site do
+#     preco atual: o catalogo acompanha a loja e a oferta que some sai do ar
+#     sozinha. Precisa de SITE_URL e SITE_TOKEN.
+PILOTO_ATUALIZAR_SITE=1
+
+# --- Cacador de cupons (parte do piloto) ----------------------------------
+# Le os cupons oficiais da KaBuM! (pagina kabum.com.br/hotsite/cupons), confere
+# em quais produtos cada um vale e aplica o cupom no preco das ofertas. Na
+# Amazon, Mercado Livre e AliExpress usa o cupom que aparece no anuncio.
+# O nome do cupom, o preco com cupom e a validade vao na postagem.
+# 1 = ligado. 0 = desligado.
+PILOTO_CUPONS=1
+# De quantas em quantas horas reler os cupons e as listas de produtos.
+PILOTO_CUPONS_HORAS=2
+# Quantas postagens por ciclo podem vir direto das listas de cupom (alem das
+# ofertas da categoria que por acaso tenham cupom).
+PILOTO_CUPOM_POSTS_POR_CICLO=1
+# Paginas (de 100 produtos) lidas da lista de cada cupom.
+PILOTO_CUPOM_PAGINAS=10
+
+# Cupons do Mercado Livre (central de cupons, exige o LOGIN-MERCADOLIVRE.bat).
+# So entram os cupons gerais de campanha ("Aplicar"), nas categorias abaixo.
+PILOTO_CUPONS_ML=1
+PILOTO_CUPONS_ML_CATEGORIAS=computing,consumer_electronics,cellphones_and_phones,games,camera_and_accesories
+# Avisos de cupom (postagem do cupom em si, com link afiliado da loja e a
+# compra minima): no maximo X por dia, com pelo menos Y minutos entre eles.
+PILOTO_AVISOS_CUPOM_POR_DIA=6
+PILOTO_AVISO_CUPOM_INTERVALO=90

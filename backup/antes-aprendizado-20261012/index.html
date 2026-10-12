@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Ofertas & Divulgação Multi-Marketplace</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0b1329;
+            --bg-card: #16203a;
+            --bg-card-hover: #1c2a4c;
+            --border-color: #263859;
+            --accent-yellow: #ffe600;
+            --accent-green: #25d366;
+            --accent-blue: #38bdf8;
+            --accent-amazon: #ff9900;
+            --accent-shopee: #ee4d2d;
+            --accent-ali: #ff4747;
+            --accent-kabum: #0b2ea1;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: #f8fafc;
+        }
+
+        .navbar-brand-title {
+            font-weight: 800;
+            color: var(--accent-yellow);
+            letter-spacing: -0.5px;
+        }
+
+        .card-custom {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-vps {
+            background: linear-gradient(135deg, #16203a 0%, #0d172e 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .progress-vps {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #0b1329;
+            overflow: hidden;
+        }
+
+        .btn-ml {
+            background-color: var(--accent-yellow);
+            color: #1e293b;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        .btn-ml:hover {
+            background-color: #e6ce00;
+            color: #0f172a;
+            transform: translateY(-1px);
+        }
+
+        .btn-publish {
+            background-color: var(--accent-green);
+            color: #000000;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        .btn-publish:hover {
+            background-color: #1eb856;
+            color: #000000;
+            transform: translateY(-1px);
+        }
+
+        .product-img {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .table-responsive {
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .table {
+            margin-bottom: 0;
+        }
+        .table th {
+            background-color: #16203a;
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .table td {
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .price-tag {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #4ade80;
+        }
+        .badge-destaque {
+            background-color: var(--accent-yellow);
+            color: #0f172a;
+            font-weight: 800;
+            font-size: 0.72rem;
+            border-radius: 4px;
+            padding: 2px 6px;
+        }
+        .badge-shipping {
+            background-color: #16a34a;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .badge-coupon {
+            background-color: #064e3b;
+            color: #34d399;
+            border: 1px solid #059669;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        .badge-ml {
+            background-color: #ffe600;
+            color: #1e293b;
+            font-weight: 800;
+        }
+        .badge-amazon {
+            background-color: var(--accent-amazon);
+            color: #0f172a;
+            font-weight: 800;
+        }
+        .badge-shopee {
+            background-color: var(--accent-shopee);
+            color: #ffffff;
+            font-weight: 800;
+        }
+        .badge-ali {
+            background-color: var(--accent-ali);
+            color: #ffffff;
+            font-weight: 800;
+        }
+        .badge-kabum {
+            background-color: var(--accent-kabum);
+            color: #ffffff;
+            font-weight: 800;
+        }
+        .badge-magalu {
+            background-color: #0086ff;
+            color: #ffffff;
+            font-weight: 800;
+        }
+
+        .category-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            background-color: #16203a;
+            border: 1px solid var(--border-color);
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            text-decoration: none;
+        }
+        .category-pill:hover {
+            background-color: #22325c;
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 230, 0, 0.15);
+        }
+        .category-pill.active {
+            background: linear-gradient(135deg, #e6ce00 0%, #ffe600 100%);
+            border-color: #ffe600;
+            color: #0f172a;
+            box-shadow: 0 4px 15px rgba(255, 230, 0, 0.35);
+        }
+
+        .badge-discount-tag {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            font-weight: 700;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .badge-original-price {
+            text-decoration: line-through;
+            color: #94a3b8;
+            font-size: 0.82rem;
+            margin-right: 4px;
+        }
+
+        .qr-container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: #16203a;
+            color: var(--accent-yellow);
+        }
+        .accordion-button {
+            background-color: #111a30;
+            color: #f8fafc;
+            font-weight: 700;
+            border-radius: 12px !important;
+        }
+    </style>
+</head>
+<body class="py-4">
+    <div class="container-fluid px-4">
+        
+        <!-- HEADER PRINCIPAL -->
+        <header class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+            <div class="d-flex align-items-center gap-3">
+                <i class="fa-solid fa-bolt-lightning fa-2x text-warning"></i>
+                <div>
+                    <h2 class="h4 mb-0 navbar-brand-title">Portal de Ofertas & Divulgação Automática</h2>
+                    <p class="text-muted small mb-0">Scraper Multi-Marketplace & Bot Transmissor WhatsApp/Telegram</p>
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-warning btn-sm fw-bold px-3 py-2" data-bs-toggle="modal" data-bs-target="#settingsModal" onclick="loadBotSettings()">
+                    <i class="fa-solid fa-gear me-1"></i> Configurações & Afiliados
+                </button>
+                <a href="/logout" class="btn btn-outline-danger btn-sm fw-bold px-3 py-2" title="Sair do Portal">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i> Sair
+                </a>
+            </div>
+        </header>
+
+        <!-- CARDS DE MONITORAMENTO DE RECURSOS E REDES (VPS / WHATSAPP / TELEGRAM) -->
+        <div class="row g-3 mb-4">
+            
+            <!-- CPU VPS -->
+            <div class="col-md-3">
+                <div class="card-vps shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small fw-semibold"><i class="fa-solid fa-microchip me-1 text-info"></i> Uso de CPU (VPS)</span>
+                        <span id="vpsCpuBadge" class="badge bg-info bg-opacity-20 text-info fw-bold">0.0%</span>
+                    </div>
+                    <div class="progress progress-vps">
+                        <div id="vpsCpuBar" class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="text-muted style-sub mt-2 small" id="vpsCpuSub">Processamento estável</div>
+                </div>
+            </div>
+
+            <!-- RAM VPS -->
+            <div class="col-md-3">
+                <div class="card-vps shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small fw-semibold"><i class="fa-solid fa-memory me-1 text-warning"></i> Memória RAM (VPS)</span>
+                        <span id="vpsRamBadge" class="badge bg-warning bg-opacity-20 text-warning fw-bold">0.0%</span>
+                    </div>
+                    <div class="progress progress-vps">
+                        <div id="vpsRamBar" class="progress-bar bg-warning" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="text-muted style-sub mt-2 small" id="vpsRamSub">RAM Processo: 0 MB</div>
+                </div>
+            </div>
+
+            <!-- STATUS WHATSAPP -->
+            <div class="col-md-3">
+                <div class="card-vps shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small fw-semibold"><i class="fa-brands fa-whatsapp me-1 text-success"></i> WhatsApp Status</span>
+                        <span id="waStatusBadge" class="badge bg-secondary">Verificando</span>
+                    </div>
+                    <div class="small fw-semibold text-light mt-1" id="waStatusText">Consultando Bot...</div>
+                    <button class="btn btn-link btn-sm p-0 text-success text-decoration-none mt-1 fw-bold" data-bs-toggle="modal" data-bs-target="#settingsModal" onclick="loadBotSettings()">
+                        <i class="fa-solid fa-qrcode me-1"></i> Abrir QR Code / Status
+                    </button>
+                </div>
+            </div>
+
+            <!-- STATUS TELEGRAM -->
+            <div class="col-md-3">
+                <div class="card-vps shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small fw-semibold"><i class="fa-paper-plane me-1 text-primary"></i> Telegram Status</span>
+                        <span id="tgStatusBadge" class="badge bg-primary">Ativo</span>
+                    </div>
+                    <div class="small fw-semibold text-light mt-1" id="tgStatusText">Canal Configurado</div>
+                    <div class="text-muted small mt-1" id="tgChatIdSub">@GMOfert</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- PAINEL DE CONFIGURAÇÕES DE AFILIADOS E RECEPTOR -->
+        <div class="accordion mb-4 shadow" id="affiliateAccordion">
+            <div class="accordion-item bg-custom-dark border-secondary">
+                <h2 class="accordion-header" id="headingAffiliates">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAffiliates" aria-expanded="false" aria-controls="collapseAffiliates">
+                        <i class="fa-solid fa-tags text-warning me-2"></i> Integrador de Afiliados (5 lojas) & Canais
+                    </button>
+                </h2>
+                <div id="collapseAffiliates" class="accordion-collapse collapse" aria-labelledby="headingAffiliates" data-bs-parent="#affiliateAccordion">
+                    <div class="accordion-body p-4">
+                        <form id="quickSettingsForm" class="row g-3">
+                            <!--
+                              Os campos das lojas vêm de /api/affiliate-schema,
+                              que por sua vez vem do afiliados.js. Escritos na
+                              mão, este painel mostrava 1 campo de 4 por loja e
+                              nem listava o Magalu: quem configurasse por aqui
+                              não alcançava os deeplinks nem os sub-ids.
+                            -->
+                            <div class="col-12">
+                                <div id="quickAffiliateFields" class="row g-3">
+                                    <div class="col-12 text-muted small">Carregando lojas…</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="quickWaGroup" class="form-label text-muted small fw-bold"><i class="fa-brands fa-whatsapp me-1 text-success"></i> Grupo do WhatsApp:</label>
+                                <div class="input-group mb-2">
+                                    <select id="quickWaGroupList" class="form-select bg-dark text-light border-secondary" disabled>
+                                        <option>Carregando grupos…</option>
+                                    </select>
+                                    <button class="btn btn-outline-secondary" type="button" data-recarregar-grupos title="Recarregar">
+                                        <i class="fa-solid fa-rotate"></i>
+                                    </button>
+                                </div>
+                                <input type="text" id="quickWaGroup" class="form-control bg-dark text-light border-secondary" placeholder="Ex: 120363406538141998@g.us">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quickTgChat" class="form-label text-muted small fw-bold"><i class="fa-paper-plane me-1 text-info"></i> ID do Canal / Grupo Telegram:</label>
+                                <input type="text" id="quickTgChat" class="form-control bg-dark text-light border-secondary" placeholder="Ex: @GMOfert">
+                            </div>
+
+                            <div class="col-12 text-end">
+                                <button type="submit" id="btnSaveQuick" class="btn btn-warning fw-bold px-4">
+                                    <i class="fa-solid fa-floppy-disk me-1"></i> Salvar Integradores
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--
+          LINK DIRETO.
+
+          O portal nascia fechado na busca: publicar exigia que a oferta tivesse
+          saido de uma pesquisa. Oferta que chega por fora — indicacao de outro
+          grupo, link copiado do celular — ficava sem caminho, e colar o
+          endereco cru no WhatsApp e' justamente o que apaga a comissao. Aqui o
+          link entra, o /api/resolve-link le a pagina e aplica a regra da loja,
+          e a tela mostra o endereco afiliado ANTES de ir para o grupo.
+        -->
+        <div class="card card-custom mb-4">
+            <div class="card-body p-4">
+                <h6 class="fw-bold text-light mb-1">
+                    <i class="fa-solid fa-link text-warning me-2"></i> Publicar um link direto
+                </h6>
+                <p class="text-muted small mb-3">
+                    Cole o endere&ccedil;o do produto. O portal l&ecirc; a p&aacute;gina, aplica a sua
+                    afilia&ccedil;&atilde;o da loja e mostra o link que vai sair antes de publicar.
+                </p>
+
+                <form id="directLinkForm" class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label for="directLinkInput" class="form-label fw-bold">Link do produto:</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-muted"><i class="fa-solid fa-paste"></i></span>
+                            <input type="url" id="directLinkInput" class="form-control bg-dark text-light border-secondary" placeholder="https://www.amazon.com.br/dp/B0CX... ou shopee, ML, Magalu, KaBuM!, AliExpress" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label for="directCouponInput" class="form-label">Cupom (opcional):</label>
+                        <input type="text" id="directCouponInput" class="form-control bg-dark text-light border-secondary" placeholder="Ex: CUPOM10">
+                    </div>
+
+                    <div class="col-md-2">
+                        <label for="directDestaqueInput" class="form-label">Destaque:</label>
+                        <input type="text" id="directDestaqueInput" class="form-control bg-dark text-light border-secondary" placeholder="OFERTA IMPERD&Iacute;VEL">
+                    </div>
+
+                    <div class="col-md-2">
+                        <button type="submit" id="btnResolveLink" class="btn btn-ml w-100 py-2">
+                            <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Preparar
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Prévia: só aparece depois que a página do produto foi lida. -->
+                <div id="directLinkResult" class="d-none mt-4 pt-3 border-top border-secondary">
+                    <div class="d-flex gap-3 align-items-start flex-wrap">
+                        <img id="directLinkImg" src="" alt="Pr&eacute;via" class="product-img" style="width: 76px; height: 76px;">
+                        <div class="flex-grow-1" style="min-width: 240px;">
+                            <span id="directLinkBadge" class="badge badge-ml mb-1">Loja</span>
+                            <div id="directLinkTitle" class="fw-semibold text-light"></div>
+                            <div id="directLinkPrice" class="text-success fw-bold"></div>
+                        </div>
+                    </div>
+
+                    <div id="directLinkWarning" class="alert alert-warning py-2 px-3 mt-3 mb-0 small d-none">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                        <span id="directLinkWarningText"></span>
+                    </div>
+
+                    <label for="directAffiliateLink" class="form-label text-muted small fw-bold mt-3">Link que vai para o grupo:</label>
+                    <div class="input-group">
+                        <input type="text" id="directAffiliateLink" class="form-control bg-dark text-success border-secondary font-monospace" style="font-size: 0.85rem;" readonly>
+                        <button class="btn btn-outline-secondary" type="button" id="btnCopyAffiliate" title="Copiar link">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+
+                    <div class="row g-3 align-items-center mt-3">
+                        <div class="col-md-5 d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="directSendTelegram" checked>
+                                <label class="form-check-label small" for="directSendTelegram"><i class="fa-solid fa-paper-plane text-info me-1"></i> Telegram</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="directSendWhatsApp" checked>
+                                <label class="form-check-label small" for="directSendWhatsApp"><i class="fa-brands fa-whatsapp text-success me-1"></i> WhatsApp</label>
+                            </div>
+                        </div>
+                        <div class="col-md-7 d-flex gap-2 justify-content-md-end">
+                            <button type="button" class="btn btn-outline-light" id="btnEditDirect">
+                                <i class="fa-solid fa-pen me-1"></i> Editar antes
+                            </button>
+                            <button type="button" class="btn btn-publish px-4" id="btnPublishDirect">
+                                <i class="fa-solid fa-paper-plane me-1"></i> Publicar no grupo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PILOTO AUTOMATICO: estado do ciclo e ultimas postagens (piloto_automatico.py) -->
+        <div class="card card-custom mb-4 border-success border-opacity-25 shadow" id="pilotoCard">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div>
+                        <h6 class="fw-bold text-light mb-1">
+                            <i class="fa-solid fa-robot text-success me-2"></i> Piloto automático
+                            <span id="pilotoSelo" class="badge bg-secondary ms-2">carregando…</span>
+                        </h6>
+                        <small class="text-secondary" id="pilotoFase">—</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-light" id="pilotoBtnRodar" onclick="pilotoRodarAgora()">
+                            <i class="fa-solid fa-forward me-1"></i> Rodar agora
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" id="pilotoBtnPausar" onclick="pilotoAlternarPausa()">
+                            <i class="fa-solid fa-pause me-1"></i> Pausar postagens
+                        </button>
+                    </div>
+                </div>
+                <div class="row g-2 mb-3 small">
+                    <div class="col-6 col-md-3"><div class="text-secondary">Postadas hoje</div><div class="fs-5 text-light" id="pilotoHoje">0</div></div>
+                    <div class="col-6 col-md-3"><div class="text-secondary">Na última hora</div><div class="fs-5 text-light" id="pilotoHora">0</div></div>
+                    <div class="col-6 col-md-3"><div class="text-secondary">Produtos monitorados</div><div class="fs-5 text-light" id="pilotoMonitorados">0</div></div>
+                    <div class="col-6 col-md-3"><div class="text-secondary">Próximo ciclo</div><div class="fs-5 text-light" id="pilotoProximo">—</div></div>
+                </div>
+                <div class="small mb-3">
+                    <div class="text-secondary mb-1"><i class="fa-solid fa-ticket text-warning me-1"></i> Cupons válidos (KaBuM! e Mercado Livre) <span id="pilotoCuponsHora"></span></div>
+                    <div id="pilotoSessaoML" class="text-warning mb-1 d-none"></div>
+                    <div id="pilotoCupons" class="d-flex flex-wrap gap-1"><span class="text-secondary">—</span></div>
+                </div>
+                <div id="pilotoErro" class="alert alert-danger py-2 small d-none"></div>
+                <div class="table-responsive" style="max-height: 260px;">
+                    <table class="table table-dark table-sm small mb-0 align-middle">
+                        <thead><tr><th>Quando</th><th>Loja</th><th>Produto</th><th class="text-end">Preço</th><th>Canais</th></tr></thead>
+                        <tbody id="pilotoUltimos"><tr><td colspan="5" class="text-secondary">Nenhuma postagem automática ainda.</td></tr></tbody>
+                    </table>
+                </div>
+                <small class="text-secondary d-block mt-2">Regras e liga/desliga: seção "Piloto automatico" do config.txt (vale no próximo ciclo, sem reiniciar).</small>
+            </div>
+        </div>
+
+        <!-- BUSCA ESPECIALIZADA POR CATEGORIAS (FOCO EM TECNOLOGIA) -->
+        <div class="card card-custom mb-4 border-warning border-opacity-25 shadow">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div>
+                        <h6 class="fw-bold text-light mb-1">
+                            <i class="fa-solid fa-microchip text-warning me-2"></i> Busca por Categorias (Prioridade: Tecnologia)
+                        </h6>
+                        <p class="text-muted small mb-0">
+                            Pesquise os principais produtos por categoria em todos os marketplaces e exporte com valor de antes e depois.
+                        </p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-ml btn-sm fw-bold px-3 py-2" onclick="buscarCategoriaAtiva()" id="btnBuscarCategoria">
+                            <i class="fa-solid fa-bolt me-1"></i> Buscar Categoria Agora
+                        </button>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2" id="categoriesPillsContainer">
+                    <button type="button" class="category-pill active" data-categoria="tecnologia" onclick="selecionarCategoria(this, 'tecnologia')">
+                        <span>💻</span> Tecnologia Geral
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="notebooks" onclick="selecionarCategoria(this, 'notebooks')">
+                        <span>💻</span> Notebooks & PCs
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="smartphones" onclick="selecionarCategoria(this, 'smartphones')">
+                        <span>📱</span> Smartphones 5G
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="hardware" onclick="selecionarCategoria(this, 'hardware')">
+                        <span>⚡</span> Hardware & Placas
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="perifericos" onclick="selecionarCategoria(this, 'perifericos')">
+                        <span>⌨️</span> Periféricos & Monitores
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="games" onclick="selecionarCategoria(this, 'games')">
+                        <span>🎮</span> Games & Consoles
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="audio" onclick="selecionarCategoria(this, 'audio')">
+                        <span>🎧</span> Áudio & Fones
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="smart_home" onclick="selecionarCategoria(this, 'smart_home')">
+                        <span>🏠</span> Casa Inteligente
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="wearables" onclick="selecionarCategoria(this, 'wearables')">
+                        <span>⌚</span> Smartwatches
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="tablets" onclick="selecionarCategoria(this, 'tablets')">
+                        <span>📲</span> Tablets & Kindle
+                    </button>
+                    <button type="button" class="category-pill" data-categoria="tv_video" onclick="selecionarCategoria(this, 'tv_video')">
+                        <span>📺</span> Smart TVs & Vídeo
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORMULÁRIO DE BUSCA -->
+        <div class="card card-custom mb-4">
+            <div class="card-body p-4">
+                <form id="searchForm" class="row g-3 align-items-end">
+                    
+                    <div class="col-md-3">
+                        <label for="platformInput" class="form-label fw-bold">Plataforma:</label>
+                        <select id="platformInput" class="form-select bg-dark text-light border-secondary">
+                            <option value="both" selected>🛍️ Mercado Livre + Amazon</option>
+                            <option value="all">🌎 Todas as lojas</option>
+                            <option value="mercadolivre">🛒 Mercado Livre</option>
+                            <option value="amazon">📦 Amazon Brasil</option>
+                            <option value="shopee">🧡 Shopee</option>
+                            <option value="aliexpress">🌐 AliExpress</option>
+                            <option value="kabum">💙 KaBuM!</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="queryInput" class="form-label fw-bold">Termo de Busca:</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="queryInput" class="form-control bg-dark text-light border-secondary" placeholder="Ex: notebook i7, rtx 4060, monitor 144hz" value="notebook i7" required>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-1">
+                        <label for="pagesInput" class="form-label">Páginas:</label>
+                        <select id="pagesInput" class="form-select bg-dark text-light border-secondary">
+                            <option value="1" selected>1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label for="limitInput" class="form-label">Limite Itens:</label>
+                        <input type="number" id="limitInput" class="form-control bg-dark text-light border-secondary" value="30" min="4" max="200">
+                    </div>
+
+                    <div class="col-md-2">
+                        <button type="submit" id="btnSearch" class="btn btn-ml w-100 py-2">
+                            <i class="fa-solid fa-rocket me-2"></i> Pesquisar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- INDICADOR DE CARREGAMENTO -->
+        <div id="loadingSpinner" class="text-center py-5 d-none">
+            <div class="spinner-border text-warning mb-3" style="width: 3.5rem; height: 3.5rem;" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <h5 class="text-light" id="spinnerText">Coletando ofertas em tempo real via Playwright...</h5>
+            <p class="text-muted">Aguarde alguns segundos enquanto raspamos e comparamos os anúncios das plataformas.</p>
+        </div>
+
+        <!-- NOTIFICAÇÃO TOAST DE STATUS -->
+        <div id="alertNotification" class="alert alert-info d-none my-3 shadow alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-circle-info me-2"></i> <span id="notificationMessage"></span>
+            <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('alertNotification').classList.add('d-none')"></button>
+        </div>
+
+        <!-- ALERTA DE ERRO -->
+        <div id="alertError" class="alert alert-danger d-none my-3 shadow" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i> <span id="errorMessage"></span>
+        </div>
+
+        <!-- SEÇÃO DE RESULTADOS -->
+        <div id="resultsSection" class="d-none">
+
+            <!-- METRICAS DE PREÇO -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card card-vps p-3">
+                        <div class="text-muted small">Total Encontrado</div>
+                        <div class="h3 fw-bold text-light mb-0" id="statTotal">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-vps p-3">
+                        <div class="text-muted small">Menor Preço (Melhor Oferta)</div>
+                        <div class="h3 fw-bold text-success mb-0" id="statMenor">R$ 0,00</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-vps p-3">
+                        <div class="text-muted small">Preço Médio Comparativo</div>
+                        <div class="h3 fw-bold text-info mb-0" id="statMedio">R$ 0,00</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-vps p-3">
+                        <div class="text-muted small">Frete Grátis / Prime</div>
+                        <div class="h3 fw-bold text-warning mb-0" id="statFrete">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AÇÕES E FILTRO DE TABELA -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex gap-2 align-items-center">
+                    <div class="input-group style-search" style="max-width: 320px;">
+                        <span class="input-group-text bg-dark border-secondary text-muted"><i class="fa-solid fa-filter"></i></span>
+                        <input type="text" id="tableFilter" class="form-control bg-dark text-light border-secondary" placeholder="Filtrar por produto, marca ou cupom...">
+                    </div>
+
+                    <!-- BOTÃO DE POSTAGEM EM LOTE -->
+                    <button id="btnPublishBatch" class="btn btn-publish text-nowrap px-3" onclick="publishSelectedBatch()">
+                        <i class="fa-solid fa-paper-plane me-1"></i> Postar Selecionados (<span id="selectedCount">0</span>)
+                    </button>
+
+                    <!-- ENVIO PARA A CAIXA DE ENTRADA DO SITE (Tech Lobo > Oportunidades) -->
+                    <button id="btnSendToSite" class="btn btn-outline-warning text-nowrap px-3" onclick="enviarParaSite()"
+                            title="Manda as ofertas para o painel do site, que aplica o seu link de afiliado">
+                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Enviar para o site
+                    </button>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button id="btnDownloadCsv" onclick="downloadExport('csv')" class="btn btn-outline-success">
+                        <i class="fa-solid fa-file-csv me-1"></i> Baixar CSV
+                    </button>
+                    <button id="btnDownloadJson" onclick="downloadExport('json')" class="btn btn-outline-info">
+                        <i class="fa-solid fa-file-code me-1"></i> Baixar JSON
+                    </button>
+                </div>
+            </div>
+
+            <!-- TABELA DINÂMICA DE PRODUTOS -->
+            <div class="table-responsive shadow">
+                <table class="table table-dark table-hover align-middle" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;" class="text-center">
+                                <input type="checkbox" id="selectAllCheckbox" class="form-check-input" onchange="toggleSelectAll(this)">
+                            </th>
+                            <th style="width: 60px;">Foto</th>
+                            <th style="width: 130px;">Plataforma</th>
+                            <th>Produto & Destaque</th>
+                            <th style="width: 130px;" class="text-end">Preço Atual</th>
+                            <th style="width: 150px;" class="text-center">Cupom Elegível</th>
+                            <th style="width: 130px;">Vendedor</th>
+                            <th style="width: 90px;" class="text-center">Frete</th>
+                            <th style="width: 190px;" class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Linhas geradas dinamicamente via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- POP-UP MODAL DE EDIÇÃO E PRÉVIA DO POST -->
+    <div class="modal fade" id="editPostModal" tabindex="-1" aria-labelledby="editPostModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content bg-custom-dark text-light border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title font-weight-bold" id="editPostModalLabel">
+                        <i class="fa-solid fa-pen-to-square text-warning me-2"></i> Editar Oferta Antes de Enviar
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editPostForm" class="row g-4">
+                        
+                        <!-- Lado Esquerdo: Campos de Edição -->
+                        <div class="col-lg-6">
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3 bg-dark border border-secondary rounded">
+                                <img id="postEditImg" src="" class="product-img" style="width: 75px; height: 75px;" alt="Prévia">
+                                <div class="overflow-hidden">
+                                    <span id="postEditPlatformBadge" class="badge badge-ml mb-1">M. Livre</span>
+                                    <h6 id="postEditTitleHead" class="mb-0 text-light text-truncate" style="max-width: 320px;">Título do Produto</h6>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">Título do Produto:</label>
+                                <input type="text" id="postEditTitle" class="form-control bg-dark text-light border-secondary" oninput="updateLiveCaption()">
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small fw-bold">Preço Atual (R$):</label>
+                                    <input type="text" id="postEditPrice" class="form-control bg-dark text-light border-secondary" oninput="updateLiveCaption()">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small fw-bold">Preço Original / De:</label>
+                                    <input type="text" id="postEditOriginalPrice" class="form-control bg-dark text-light border-secondary" placeholder="Ex: R$ 1.200,00" oninput="updateLiveCaption()">
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small fw-bold">Destaque / Badge:</label>
+                                    <input type="text" id="postEditDestaque" class="form-control bg-dark text-light border-secondary" placeholder="Ex: OFERTA IMPERDÍVEL" oninput="updateLiveCaption()">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small fw-bold">Cupom Elegível:</label>
+                                    <input type="text" id="postEditCoupon" class="form-control bg-dark text-light border-secondary" placeholder="Ex: CUPOM10" oninput="updateLiveCaption()">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">Link do Anúncio / Afiliado:</label>
+                                <input type="text" id="postEditLink" class="form-control bg-dark text-light border-secondary" oninput="updateLiveCaption()">
+                            </div>
+                        </div>
+
+                        <!-- Lado Direito: Prévia e Editor da Legenda -->
+                        <div class="col-lg-6">
+                            <label class="form-label text-muted small fw-bold"><i class="fa-solid fa-code me-1 text-info"></i> Legenda do Post (Formatada & Emojis):</label>
+                            <textarea id="postEditCaption" class="form-control bg-dark text-light border-secondary font-monospace" rows="12" style="font-size: 0.9rem; line-height: 1.5;"></textarea>
+
+                            <div class="card bg-dark border-secondary p-3 my-3">
+                                <h6 class="text-warning fw-bold small mb-2"><i class="fa-solid fa-share-nodes me-1"></i> Transmitir para os Canais:</h6>
+                                <div class="d-flex gap-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="postSendTelegram" checked>
+                                        <label class="form-check-label text-light fw-semibold" for="postSendTelegram">
+                                            <i class="fa-paper-plane text-info me-1"></i> Telegram
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="postSendWhatsApp" checked>
+                                        <label class="form-check-label text-light fw-semibold" for="postSendWhatsApp">
+                                            <i class="fa-brands fa-whatsapp text-success me-1"></i> WhatsApp
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-end">
+                                <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" id="btnConfirmPublishModal" class="btn btn-publish px-4 py-2">
+                                    <i class="fa-solid fa-paper-plane me-2"></i> Transmitir Oferta Agora
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL COMPLETO DE CONFIGURAÇÕES DO BOT E QR CODE WHATSAPP -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-custom-dark text-light border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title font-weight-bold" id="settingsModalLabel">
+                        <i class="fa-solid fa-sliders text-warning me-2"></i> Central de Integração & Conexões
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    
+                    <!-- CONEXÃO WHATSAPP E QR CODE -->
+                    <div class="card bg-dark border-secondary p-3 mb-4 text-center">
+                        <h6 class="text-warning fw-bold mb-2"><i class="fa-brands fa-whatsapp me-2"></i> Conexão WhatsApp Web (Baileys)</h6>
+                        <div id="waStatusArea">
+                            <span class="badge bg-secondary p-2">Verificando...</span>
+                        </div>
+                    </div>
+
+                    <!-- FORMULÁRIO COMPLETO -->
+                    <form id="fullSettingsForm">
+                        <h6 class="text-light fw-bold mb-3 border-bottom border-secondary pb-2">
+                            <i class="fa-solid fa-tags me-2 text-info"></i> Integração de Afiliados
+                        </h6>
+
+                        <!-- Mesma fonte do painel rápido: /api/affiliate-schema. -->
+                        <div id="modalAffiliateFields" class="row g-3 mb-4">
+                            <div class="col-12 text-muted small">Carregando lojas…</div>
+                        </div>
+
+                        <h6 class="text-light fw-bold mb-3 border-bottom border-secondary pb-2">
+                            <i class="fa-solid fa-paper-plane me-2 text-success"></i> Canais e Tokens de Transmissão
+                        </h6>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="modalWaGroup" class="form-label text-muted small">Grupo do WhatsApp:</label>
+                                <div class="input-group mb-2">
+                                    <select id="modalWaGroupList" class="form-select bg-dark text-light border-secondary" disabled>
+                                        <option>Carregando grupos…</option>
+                                    </select>
+                                    <button class="btn btn-outline-secondary" type="button" data-recarregar-grupos title="Recarregar">
+                                        <i class="fa-solid fa-rotate"></i>
+                                    </button>
+                                </div>
+                                <input type="text" id="modalWaGroup" class="form-control bg-dark text-light border-secondary" placeholder="Ex: 120363406538141998@g.us">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modalTgChat" class="form-label text-muted small">Canal / Chat ID Telegram:</label>
+                                <input type="text" id="modalTgChat" class="form-control bg-dark text-light border-secondary" placeholder="Ex: @GMOfert">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="modalTgToken" class="form-label text-muted small">Telegram Bot Token:</label>
+                                <input type="password" id="modalTgToken" class="form-control bg-dark text-light border-secondary" placeholder="Token do Telegram Bot API">
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" id="btnSaveFull" class="btn btn-warning fw-bold px-4">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> Salvar Todas as Configurações
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let currentResultsData = [];
+        let activeEditItem = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMetricsAndStatus();
+            setInterval(fetchMetricsAndStatus, 3000);
+            carregarPiloto();
+            setInterval(carregarPiloto, 10000);
+            loadBotSettings();
+
+            // A lista de grupos depende do WhatsApp estar conectado, o que
+            // costuma acontecer alguns segundos depois de a página abrir; por
+            // isso ela também recarrega quando o modal é aberto.
+            carregarGruposWhatsApp();
+            const modalConfig = document.getElementById('settingsModal');
+            if (modalConfig) {
+                modalConfig.addEventListener('shown.bs.modal', carregarGruposWhatsApp);
+            }
+        });
+
+        // --- Piloto automático ---------------------------------------------
+        let pilotoPausado = false;
+        async function carregarPiloto() {
+            try {
+                const res = await fetch('/api/piloto/status');
+                const d = await res.json();
+                if (!d.success) return;
+                pilotoPausado = !!d.pausado;
+                const selo = document.getElementById('pilotoSelo');
+                let texto = 'ligado', cor = 'bg-success';
+                if (!d.ativo_no_config) { texto = 'desligado no config.txt'; cor = 'bg-secondary'; }
+                else if (d.pausado) { texto = 'postagens pausadas'; cor = 'bg-warning text-dark'; }
+                else if (d.silencio_agora) { texto = 'horário de silêncio'; cor = 'bg-info text-dark'; }
+                selo.textContent = texto;
+                selo.className = 'badge ms-2 ' + cor;
+                document.getElementById('pilotoFase').textContent =
+                    (d.detalhe || d.fase || '—') + (d.ultima_categoria ? '  ·  última categoria: ' + d.ultima_categoria : '');
+                document.getElementById('pilotoHoje').textContent = d.postados_hoje;
+                document.getElementById('pilotoHora').textContent = d.postados_ultima_hora + ' / ' + (d.regras.PILOTO_MAX_POR_HORA || '?');
+                document.getElementById('pilotoMonitorados').textContent = d.produtos_monitorados;
+                document.getElementById('pilotoProximo').textContent = d.proximo_ciclo ? d.proximo_ciclo.slice(11, 16) : (d.fase === 'buscando' || d.fase === 'publicando' ? 'agora' : '—');
+                const erro = document.getElementById('pilotoErro');
+                erro.classList.toggle('d-none', !d.ultimo_erro);
+                erro.textContent = d.ultimo_erro ? 'Último erro: ' + d.ultimo_erro : '';
+                const btn = document.getElementById('pilotoBtnPausar');
+                btn.innerHTML = d.pausado ? '<i class="fa-solid fa-play me-1"></i> Retomar postagens' : '<i class="fa-solid fa-pause me-1"></i> Pausar postagens';
+                const caixaCupons = document.getElementById('pilotoCupons');
+                const listaCupons = (d.cupons && d.cupons.ativos) || [];
+                const usaveis = listaCupons.filter(function (c) { return !c.restricao; });
+                document.getElementById('pilotoCuponsHora').textContent = d.cupons && d.cupons.atualizado_em ? '· conferidos às ' + d.cupons.atualizado_em.slice(11, 16) : '';
+                caixaCupons.innerHTML = usaveis.length ? usaveis.map(function (c) {
+                    const ml = c.loja === 'Mercado Livre';
+                    const rotulo = ml ? 'ML · ' + c.codigo
+                        : c.codigo + ' ' + (c.descricao || '').split(' ').slice(0, 2).join(' ');
+                    return '<span class="badge bg-dark border ' + (ml ? 'border-info text-info' : 'border-warning text-warning') + ' fw-normal" title="' +
+                        escapar(c.descricao + (ml ? '' : ' · ' + c.produtos + ' produto(s) conferido(s)')) + '">' +
+                        escapar(rotulo) + (c.minimo ? ' · mín. ' + escapar(formatarPreco(c.minimo)) : '') +
+                        (c.validade ? ' · até ' + escapar(c.validade) : '') + '</span>';
+                }).join('') : '<span class="text-secondary">nenhum cupom carregado ainda</span>';
+                const avisoML = document.getElementById('pilotoSessaoML');
+                const sessaoML = d.ml_sessao || '';
+                avisoML.classList.toggle('d-none', !sessaoML || sessaoML === 'ok');
+                avisoML.textContent = sessaoML && sessaoML !== 'ok' ? 'Mercado Livre: ' + sessaoML : '';
+                const corpo = document.getElementById('pilotoUltimos');
+                if (d.ultimos && d.ultimos.length) {
+                    corpo.innerHTML = d.ultimos.map(function (p) {
+                        return '<tr><td class="text-nowrap">' + escapar(p.postado_em.slice(8, 10) + '/' + p.postado_em.slice(5, 7) + ' ' + p.postado_em.slice(11, 16)) + '</td>' +
+                            '<td class="text-nowrap">' + escapar(p.plataforma || '') + '</td>' +
+                            '<td><a class="link-light" target="_blank" rel="noopener" href="' + escapar(p.link || '#') + '">' + escapar((p.titulo || '').slice(0, 70)) + '</a></td>' +
+                            '<td class="text-end text-nowrap">' + formatarPreco(p.preco) + '</td>' +
+                            '<td class="text-nowrap">' + escapar(p.canais || '') + '</td></tr>';
+                    }).join('');
+                }
+            } catch (e) { /* portal ainda subindo */ }
+        }
+        async function pilotoAlternarPausa() {
+            await fetch('/api/piloto/pausar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pausado: !pilotoPausado }) });
+            carregarPiloto();
+        }
+        async function pilotoRodarAgora() {
+            await fetch('/api/piloto/rodar-agora', { method: 'POST' });
+            avisar('Próximo ciclo do piloto começa agora (se não houver um rodando).', 'success');
+            setTimeout(carregarPiloto, 1500);
+        }
+
+        // Atualização contínua das métricas de CPU, RAM e Status dos Canais
+        async function fetchMetricsAndStatus() {
+            try {
+                const res = await fetch('/api/bot-status');
+                const data = await res.json();
+
+                const cpuVal = parseFloat(data.cpuPercent || 0);
+                const cpuBadge = document.getElementById('vpsCpuBadge');
+                const cpuBar = document.getElementById('vpsCpuBar');
+                cpuBadge.textContent = `${cpuVal.toFixed(1)}%`;
+                cpuBar.style.width = `${Math.min(cpuVal, 100)}%`;
+
+                if (cpuVal > 80) {
+                    cpuBadge.className = 'badge bg-danger text-light fw-bold';
+                    cpuBar.className = 'progress-bar bg-danger';
+                    document.getElementById('vpsCpuSub').textContent = '⚠️ Alta carga na VPS';
+                } else if (cpuVal > 50) {
+                    cpuBadge.className = 'badge bg-warning text-dark fw-bold';
+                    cpuBar.className = 'progress-bar bg-warning';
+                    document.getElementById('vpsCpuSub').textContent = 'Uso moderado';
+                } else {
+                    cpuBadge.className = 'badge bg-info bg-opacity-20 text-info fw-bold';
+                    cpuBar.className = 'progress-bar bg-info';
+                    document.getElementById('vpsCpuSub').textContent = 'Processamento normal';
+                }
+
+                const ramVal = parseFloat(data.memPercent || 0);
+                const ramBadge = document.getElementById('vpsRamBadge');
+                const ramBar = document.getElementById('vpsRamBar');
+                ramBadge.textContent = `${ramVal.toFixed(1)}%`;
+                ramBar.style.width = `${Math.min(ramVal, 100)}%`;
+                document.getElementById('vpsRamSub').textContent = `App Mem: ${data.appMemMB || '0'} MB`;
+
+                const waBadge = document.getElementById('waStatusBadge');
+                const waText = document.getElementById('waStatusText');
+                if (data.online && data.waConnected) {
+                    waBadge.className = 'badge bg-success';
+                    waBadge.textContent = 'Ativo 🟢';
+                    waText.textContent = 'WhatsApp Conectado';
+                } else if (data.online) {
+                    waBadge.className = 'badge bg-warning text-dark';
+                    waBadge.textContent = 'Pendente 🟡';
+                    waText.textContent = 'Escaneie o QR Code';
+                } else {
+                    waBadge.className = 'badge bg-danger';
+                    waBadge.textContent = 'Offline 🔴';
+                    waText.textContent = 'Bot Desconectado';
+                }
+
+                const tgBadge = document.getElementById('tgStatusBadge');
+                const tgText = document.getElementById('tgStatusText');
+                if (data.online) {
+                    tgBadge.className = 'badge bg-primary';
+                    tgBadge.textContent = 'Ativo 🟢';
+                    tgText.textContent = 'Transmissão Pronta';
+                } else {
+                    tgBadge.className = 'badge bg-danger';
+                    tgBadge.textContent = 'Offline 🔴';
+                    tgText.textContent = 'Bot Offline';
+                }
+
+            } catch (err) {
+                console.error("Erro ao atualizar métricas:", err);
+            }
+        }
+
+        async function loadBotSettings() {
+            const waArea = document.getElementById('waStatusArea');
+            try {
+                const resStatus = await fetch('/api/bot-status');
+                const statusData = await resStatus.json();
+
+                if (statusData.online) {
+                    if (statusData.waConnected) {
+                        waArea.innerHTML = `<div class="text-success fw-bold p-2"><i class="fa-solid fa-circle-check me-2"></i> WhatsApp Conectado e Operacional!</div>`;
+                    } else if (statusData.waQrUrl) {
+                        waArea.innerHTML = `
+                            <p class="text-light small mb-2">Abra o WhatsApp no celular > Dispositivos Conectados e escaneie:</p>
+                            <div class="qr-container my-2">
+                                <img src="${statusData.waQrUrl}" width="220" alt="QR Code WhatsApp">
+                            </div>
+                        `;
+                    } else {
+                        waArea.innerHTML = `<div class="text-warning small p-2"><i class="fa-solid fa-spinner fa-spin me-2"></i> Gerando QR Code... Aguarde alguns segundos.</div>`;
+                    }
+                } else {
+                    waArea.innerHTML = `<div class="text-danger small p-2"><i class="fa-solid fa-circle-xmark me-2"></i> O servidor do Bot Node.js não está rodando.</div>`;
+                }
+
+                await carregarEsquemaDeLojas();
+
+                const resConfig = await fetch('/api/bot-settings');
+                const configData = await resConfig.json();
+
+                if (configData.success && configData.settings) {
+                    settingsAtuais = configData.settings;
+                    aplicarSettingsNaTela(settingsAtuais);
+                }
+            } catch (err) {
+                console.error("Erro ao carregar configurações:", err);
+                // settingsAtuais continua null de propósito: é o que impede o
+                // "Salvar" de gravar campos vazios por cima do que está no banco.
+            }
+        }
+
+        /**
+         * Estado das configurações do bot.
+         *
+         * `settingsAtuais === null` significa "nunca consegui ler o banco". Sem
+         * essa distinção acontecia o seguinte: se o bot ainda estivesse subindo
+         * quando a página abrisse, o GET falhava, os campos ficavam vazios e o
+         * primeiro clique em Salvar apagava todos os links de afiliado — porque
+         * o formulário mandava string vazia e o COALESCE do banco só protege
+         * campo AUSENTE, não campo vazio.
+         */
+        let esquemaLojas = [];
+        let settingsAtuais = null;
+
+        // id do input no HTML -> coluna no banco do bot.
+        const CAMPOS_DE_CANAL = {
+            quickWaGroup: 'whatsappGroupId',
+            quickTgChat: 'telegramChatId',
+            modalWaGroup: 'whatsappGroupId',
+            modalTgChat: 'telegramChatId',
+            modalTgToken: 'telegramBotToken'
+        };
+
+        async function carregarEsquemaDeLojas() {
+            if (esquemaLojas.length) return;
+            try {
+                const res = await fetch('/api/affiliate-schema');
+                const dados = await res.json();
+                if (dados.success && Array.isArray(dados.lojas)) {
+                    esquemaLojas = dados.lojas;
+                    desenharCampos('quickAffiliateFields', 'quick');
+                    desenharCampos('modalAffiliateFields', 'modal');
+                }
+            } catch (err) {
+                console.error('Erro ao carregar o esquema de afiliados:', err);
+            }
+        }
+
+        function escapar(texto) {
+            return String(texto == null ? '' : texto)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        /** Desenha um bloco por loja, com todos os campos que o bot conhece. */
+        function desenharCampos(idContainer, prefixo) {
+            const container = document.getElementById(idContainer);
+            if (!container) return;
+
+            container.innerHTML = esquemaLojas.map(function (loja) {
+                const campos = loja.campos.map(function (campo) {
+                    const id = prefixo + '__' + campo.nome;
+                    return ''
+                        + '<div class="col-md-6">'
+                        + '<label for="' + id + '" class="form-label text-muted small">' + escapar(campo.rotulo) + '</label>'
+                        + '<input type="' + campo.tipo + '" id="' + id + '" data-campo="' + campo.nome + '"'
+                        + ' class="form-control form-control-sm bg-dark text-light border-secondary"'
+                        + ' placeholder="' + escapar(campo.placeholder) + '">'
+                        + (campo.ajuda ? '<div class="form-text text-muted" style="font-size:11px">' + escapar(campo.ajuda) + '</div>' : '')
+                        + '</div>';
+                }).join('');
+
+                return ''
+                    + '<div class="col-12">'
+                    + '<div class="border border-secondary rounded p-3 h-100">'
+                    + '<div class="fw-bold text-light mb-2">' + escapar(loja.rotulo) + '</div>'
+                    + (loja.aviso ? '<div class="alert alert-dark border-secondary small py-2">' + escapar(loja.aviso) + '</div>' : '')
+                    + '<div class="row g-2">' + campos + '</div>'
+                    + '</div></div>';
+            }).join('');
+        }
+
+        function aplicarSettingsNaTela(s) {
+            document.querySelectorAll('[data-campo]').forEach(function (input) {
+                input.value = s[input.dataset.campo] || '';
+            });
+
+            for (const id in CAMPOS_DE_CANAL) {
+                const input = document.getElementById(id);
+                if (input) input.value = s[CAMPOS_DE_CANAL[id]] || '';
+            }
+
+            if (s.telegramChatId) {
+                const sub = document.getElementById('tgChatIdSub');
+                if (sub) sub.textContent = s.telegramChatId;
+            }
+
+            sincronizarSelecaoDeGrupo();
+        }
+
+        /**
+         * Só o que o usuário realmente mudou vai no POST.
+         *
+         * Campo que não entra no corpo é preservado pelo COALESCE do bot, então
+         * salvar pelo painel rápido não encosta no que foi configurado pelo
+         * modal — e um segredo que voltou mascarado ("••••••••") não é
+         * reenviado, porque continua igual ao que a tela recebeu.
+         */
+        function coletarAlteracoes(prefixo) {
+            const mudancas = {};
+
+            document.querySelectorAll('[data-campo]').forEach(function (input) {
+                if (!input.id.startsWith(prefixo + '__')) return;
+                const nome = input.dataset.campo;
+                if (input.value !== (settingsAtuais[nome] || '')) mudancas[nome] = input.value;
+            });
+
+            for (const id in CAMPOS_DE_CANAL) {
+                if (!id.startsWith(prefixo)) continue;
+                const input = document.getElementById(id);
+                if (!input) continue;
+                const nome = CAMPOS_DE_CANAL[id];
+                if (input.value !== (settingsAtuais[nome] || '')) mudancas[nome] = input.value;
+            }
+
+            return mudancas;
+        }
+
+        async function salvarConfiguracoes(prefixo, mensagemOk) {
+            if (settingsAtuais === null) {
+                alert('As configurações atuais ainda não foram lidas do bot. '
+                    + 'Salvar agora apagaria o que está gravado. Verifique se o bot está rodando e recarregue a página.');
+                return false;
+            }
+
+            const mudancas = coletarAlteracoes(prefixo);
+            if (!Object.keys(mudancas).length) {
+                alert('Nada mudou.');
+                return true;
+            }
+
+            const res = await fetch('/api/bot-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(mudancas)
+            });
+            const data = await res.json();
+
+            if (!data.success) {
+                alert('Erro ao salvar: ' + (data.error || 'Falha'));
+                return false;
+            }
+
+            alert(mensagemOk);
+            await loadBotSettings();
+            return true;
+        }
+
+        /** Lista os grupos do WhatsApp nos dois seletores da tela. */
+        async function carregarGruposWhatsApp() {
+            const seletores = ['quickWaGroupList', 'modalWaGroupList']
+                .map(function (id) { return document.getElementById(id); })
+                .filter(Boolean);
+            if (!seletores.length) return;
+
+            seletores.forEach(function (sel) {
+                sel.disabled = true;
+                sel.innerHTML = '<option>Carregando grupos…</option>';
+            });
+
+            let grupos = [];
+            let erro = 'Nenhum grupo encontrado';
+            try {
+                const res = await fetch('/api/wa-groups');
+                const dados = await res.json();
+                grupos = dados.grupos || [];
+                if (dados.error) erro = dados.error;
+            } catch (e) {
+                erro = 'Bot indisponível';
+            }
+
+            seletores.forEach(function (sel) {
+                if (!grupos.length) {
+                    sel.innerHTML = '<option value="">' + escapar(erro) + '</option>';
+                    return;
+                }
+                sel.innerHTML = '<option value="">— escolha um grupo —</option>'
+                    + grupos.map(function (g) {
+                        return '<option value="' + escapar(g.id) + '">'
+                            + escapar(g.nome) + ' (' + g.participantes + ')</option>';
+                    }).join('');
+                sel.disabled = false;
+            });
+
+            sincronizarSelecaoDeGrupo();
+        }
+
+        function sincronizarSelecaoDeGrupo() {
+            [['quickWaGroupList', 'quickWaGroup'], ['modalWaGroupList', 'modalWaGroup']].forEach(function (par) {
+                const sel = document.getElementById(par[0]);
+                const campo = document.getElementById(par[1]);
+                if (sel && campo && !sel.disabled) sel.value = campo.value || '';
+            });
+        }
+
+        document.addEventListener('change', function (e) {
+            const par = { quickWaGroupList: 'quickWaGroup', modalWaGroupList: 'modalWaGroup' }[e.target.id];
+            if (par && e.target.value) document.getElementById(par).value = e.target.value;
+        });
+
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('[data-recarregar-grupos]')) carregarGruposWhatsApp();
+        });
+
+        // Identidade visual de cada loja num lugar só. Antes a tabela e o modal
+        // de publicação tinham cada um o seu "isAmazon ? ... : ...", e incluir
+        // uma loja significava caçar todos esses ternários pelo arquivo.
+        const LOJAS = {
+            mercadolivre: { rotulo: 'M. Livre',   nomeCompleto: 'Mercado Livre', badge: 'badge-ml',     icone: 'fa-solid fa-cart-shopping',  botao: 'btn-warning' },
+            amazon:       { rotulo: 'Amazon',     nomeCompleto: 'Amazon Brasil', badge: 'badge-amazon', icone: 'fa-brands fa-amazon',        botao: 'btn-outline-warning' },
+            shopee:       { rotulo: 'Shopee',     nomeCompleto: 'Shopee',        badge: 'badge-shopee', icone: 'fa-solid fa-bag-shopping',   botao: 'btn-outline-danger' },
+            aliexpress:   { rotulo: 'AliExpress', nomeCompleto: 'AliExpress',    badge: 'badge-ali',    icone: 'fa-solid fa-globe',          botao: 'btn-outline-danger' },
+            kabum:        { rotulo: 'KaBuM!',     nomeCompleto: 'KaBuM!',        badge: 'badge-kabum',  icone: 'fa-solid fa-microchip',      botao: 'btn-outline-primary' },
+            magalu:       { rotulo: 'Magalu',     nomeCompleto: 'Magalu',        badge: 'badge-magalu', icone: 'fa-solid fa-store',          botao: 'btn-outline-info' }
+        };
+
+        function identificarLoja(plataforma) {
+            const texto = (plataforma || '').toLowerCase();
+            if (texto.includes('amazon')) return LOJAS.amazon;
+            if (texto.includes('shopee')) return LOJAS.shopee;
+            if (texto.includes('ali')) return LOJAS.aliexpress;
+            if (texto.includes('kabum')) return LOJAS.kabum;
+            if (texto.includes('magalu') || texto.includes('magazine')) return LOJAS.magalu;
+            return LOJAS.mercadolivre;
+        }
+
+        /**
+         * Preço para o olho humano.
+         *
+         * A busca entrega número (1234.5) e o /api/resolve-link entrega texto
+         * já formatado ("R$ 1.234,50"), porque quem lê a página do produto lê
+         * o preço como ele está escrito lá. `toLocaleString` num texto devolve
+         * o próprio texto, então o caminho antigo escrevia "R$ R$ 1.234,50".
+         */
+        function formatarPreco(valor) {
+            if (valor === null || valor === undefined || valor === '') return '';
+            if (typeof valor === 'number') return `R$ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            return String(valor);
+        }
+
+        /** Faixa de aviso do topo, usada por todos os fluxos de publicação. */
+        function avisar(mensagem, tipo) {
+            const notif = document.getElementById('alertNotification');
+            notif.className = `alert alert-${tipo || 'info'} shadow alert-dismissible fade show my-3`;
+            document.getElementById('notificationMessage').textContent = mensagem;
+            notif.classList.remove('d-none');
+        }
+
+        // ABRIR POP-UP MODAL DE EDIÇÃO DO POST
+        function openEditPostModal(index) {
+            abrirModalComItem(currentResultsData[index]);
+        }
+
+        /**
+         * Abre o editor para uma oferta qualquer.
+         *
+         * Antes o modal só sabia ler `currentResultsData[index]`, o que amarrava
+         * a edição ao resultado de uma busca. O link colado à mão não tem índice
+         * nenhum, então o que ele precisa é entregar o item direto.
+         */
+        function abrirModalComItem(item) {
+            if (!item) return;
+
+            activeEditItem = { ...item };
+
+            const loja = identificarLoja(item.plataforma);
+            const platformBadge = document.getElementById('postEditPlatformBadge');
+            platformBadge.className = `badge ${loja.badge} mb-1`;
+            platformBadge.textContent = loja.nomeCompleto;
+
+            document.getElementById('postEditImg').src = item.imagem_url || '';
+            document.getElementById('postEditTitleHead').textContent = item.titulo || 'Produto';
+
+            document.getElementById('postEditTitle').value = item.titulo || '';
+            document.getElementById('postEditPrice').value = formatarPreco(item.preco);
+            document.getElementById('postEditOriginalPrice').value = formatarPreco(item.preco_original);
+            document.getElementById('postEditDestaque').value = item.destaque || 'OFERTA IMPERDÍVEL';
+            document.getElementById('postEditCoupon').value = item.cupom || '';
+            document.getElementById('postEditLink').value = item.link || '';
+
+            updateLiveCaption();
+
+            const modalElem = document.getElementById('editPostModal');
+            const modal = new bootstrap.Modal(modalElem);
+            modal.show();
+        }
+
+        // GERAR LEGENDA FORMATADA EM TEMPO REAL
+        function updateLiveCaption() {
+            const title = document.getElementById('postEditTitle').value;
+            const price = document.getElementById('postEditPrice').value;
+            const origPrice = document.getElementById('postEditOriginalPrice').value;
+            const destaque = document.getElementById('postEditDestaque').value;
+            const coupon = document.getElementById('postEditCoupon').value;
+            const link = document.getElementById('postEditLink').value;
+
+            let priceText = `💸 <b>Por apenas: ${price || 'Confira'}</b>`;
+            if (origPrice && origPrice !== price) {
+                priceText = `📉 <b>BAIXOU DE PREÇO!</b>\n❌ De: <s>${origPrice}</s>\n✅ <b>Por: ${price}</b>`;
+            }
+
+            let destaqueText = destaque ? `🔥 <b>${destaque.toUpperCase()}!</b>\n\n` : `🔥 <b>OFERTA IMPERDÍVEL!</b>\n\n`;
+            let couponText = coupon ? `\n🎟️ <b>Use o Cupom:</b> <code>${coupon}</code>\n` : '';
+
+            const caption = `${destaqueText}📦 ${title}\n\n${priceText}\n${couponText}\n🛒 <b>Compre aqui:</b> <a href="${link}">Link do Desconto</a>`;
+
+            document.getElementById('postEditCaption').value = caption;
+        }
+
+        // TRANSMITIR POST EDITADO VIA MODAL
+        document.getElementById('editPostForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('btnConfirmPublishModal');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Enviando...`;
+
+            try {
+                const payload = {
+                    titulo: document.getElementById('postEditTitle').value,
+                    preco: document.getElementById('postEditPrice').value,
+                    preco_original: document.getElementById('postEditOriginalPrice').value,
+                    destaque: document.getElementById('postEditDestaque').value,
+                    cupom: document.getElementById('postEditCoupon').value,
+                    link: document.getElementById('postEditLink').value,
+                    imagem_url: document.getElementById('postEditImg').src,
+                    plataforma: activeEditItem ? activeEditItem.plataforma : 'Mercado Livre',
+                    // Oferta que veio do /api/resolve-link já traz o endereço
+                    // afiliado pronto; avisar o bot evita que ele aplique a
+                    // regra da loja duas vezes sobre o mesmo link.
+                    link_afiliado: (activeEditItem && activeEditItem.link_afiliado) || '',
+                    caption: document.getElementById('postEditCaption').value,
+                    sendTelegram: document.getElementById('postSendTelegram').checked,
+                    sendWhatsApp: document.getElementById('postSendWhatsApp').checked
+                };
+
+                const res = await fetch('/api/publish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                const notif = document.getElementById('alertNotification');
+                const notifMsg = document.getElementById('notificationMessage');
+
+                if (data.success) {
+                    notif.className = "alert alert-success shadow alert-dismissible fade show my-3";
+                    notifMsg.textContent = `✨ Oferta publicada com sucesso! (${data.message})`;
+                    const modalElem = document.getElementById('editPostModal');
+                    const modal = bootstrap.Modal.getInstance(modalElem);
+                    if (modal) modal.hide();
+                } else {
+                    alert('⚠️ AVISO ao enviar: ' + (data.error || data.message));
+                }
+                notif.classList.remove('d-none');
+
+            } catch (err) {
+                alert('Erro ao enviar postagem: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        });
+
+        // ============================================================
+        //  LINK DIRETO
+        //  colar -> ler a página -> aplicar afiliação -> publicar
+        // ============================================================
+
+        // A oferta preparada pelo campo de link, à espera de ir para o grupo.
+        let ofertaDeLinkDireto = null;
+
+        function mostrarOfertaDeLinkDireto(dados) {
+            const loja = identificarLoja(dados.plataforma);
+
+            const badge = document.getElementById('directLinkBadge');
+            badge.className = `badge ${loja.badge} mb-1`;
+            badge.textContent = loja.nomeCompleto;
+
+            const img = document.getElementById('directLinkImg');
+            img.src = dados.imagem_url || '';
+            img.classList.toggle('d-none', !dados.imagem_url);
+
+            document.getElementById('directLinkTitle').textContent = dados.titulo || 'Produto';
+
+            const preco = formatarPreco(dados.preco);
+            const antigo = formatarPreco(dados.preco_original);
+            document.getElementById('directLinkPrice').textContent =
+                antigo && antigo !== preco ? `${preco}  (antes ${antigo})` : preco;
+
+            document.getElementById('directAffiliateLink').value = dados.link_afiliado || dados.link || '';
+
+            // O aviso é o ponto todo da tela: sem ele o usuário só descobre que
+            // esqueceu de configurar a loja quando a comissão não aparece.
+            const aviso = document.getElementById('directLinkWarning');
+            if (dados.afiliado_configurado) {
+                aviso.classList.add('d-none');
+            } else {
+                document.getElementById('directLinkWarningText').textContent =
+                    `${loja.nomeCompleto} está sem afiliação configurada: este link vai sair igual ao original, sem comissão. `
+                    + 'Preencha a loja em "Integrador de Afiliados" logo acima e prepare o link de novo.';
+                aviso.classList.remove('d-none');
+            }
+
+            document.getElementById('directLinkResult').classList.remove('d-none');
+        }
+
+        document.getElementById('directLinkForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('btnResolveLink');
+            const htmlOriginal = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Lendo...';
+
+            document.getElementById('alertError').classList.add('d-none');
+
+            try {
+                const res = await fetch('/api/resolve-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ link: document.getElementById('directLinkInput').value.trim() })
+                });
+                const dados = await res.json();
+
+                if (!dados.success) {
+                    document.getElementById('directLinkResult').classList.add('d-none');
+                    ofertaDeLinkDireto = null;
+                    document.getElementById('errorMessage').textContent = dados.error || 'Não foi possível ler este link.';
+                    document.getElementById('alertError').classList.remove('d-none');
+                    return;
+                }
+
+                // O item sai no mesmo formato que a tabela da busca produz, para
+                // o editor e o /api/publish não precisarem saber de onde veio.
+                // `link` já é o endereço afiliado: é ele que a legenda escreve
+                // no <a href>, e `link_afiliado` diz ao bot que a regra da loja
+                // já foi aplicada — reaplicar embrulharia um deeplink no outro.
+                ofertaDeLinkDireto = {
+                    titulo: dados.titulo,
+                    preco: dados.preco,
+                    preco_original: dados.preco_original,
+                    imagem_url: dados.imagem_url,
+                    plataforma: dados.plataforma,
+                    link: dados.link_afiliado,
+                    link_afiliado: dados.link_afiliado,
+                    cupom: document.getElementById('directCouponInput').value.trim(),
+                    destaque: document.getElementById('directDestaqueInput').value.trim()
+                };
+
+                mostrarOfertaDeLinkDireto(dados);
+            } catch (err) {
+                document.getElementById('errorMessage').textContent = 'Erro ao ler o link: ' + err.message;
+                document.getElementById('alertError').classList.remove('d-none');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = htmlOriginal;
+            }
+        });
+
+        document.getElementById('btnCopyAffiliate').addEventListener('click', function () {
+            const campo = document.getElementById('directAffiliateLink');
+            campo.select();
+            // O clipboard moderno exige contexto seguro; no modo portátil o
+            // portal roda em localhost, mas execCommand cobre o resto.
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(campo.value).catch(function () { document.execCommand('copy'); });
+            } else {
+                document.execCommand('copy');
+            }
+            avisar('Link de afiliado copiado.', 'info');
+        });
+
+        document.getElementById('btnEditDirect').addEventListener('click', function () {
+            if (!ofertaDeLinkDireto) return;
+            ofertaDeLinkDireto.cupom = document.getElementById('directCouponInput').value.trim();
+            ofertaDeLinkDireto.destaque = document.getElementById('directDestaqueInput').value.trim();
+            abrirModalComItem(ofertaDeLinkDireto);
+        });
+
+        document.getElementById('btnPublishDirect').addEventListener('click', async function () {
+            if (!ofertaDeLinkDireto) return;
+
+            const btn = this;
+            const htmlOriginal = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Enviando...';
+
+            try {
+                // Sem `caption`: a legenda padrão é montada pelo bot, que é quem
+                // conhece o rótulo da loja e o link final.
+                const payload = Object.assign({}, ofertaDeLinkDireto, {
+                    cupom: document.getElementById('directCouponInput').value.trim(),
+                    destaque: document.getElementById('directDestaqueInput').value.trim(),
+                    sendTelegram: document.getElementById('directSendTelegram').checked,
+                    sendWhatsApp: document.getElementById('directSendWhatsApp').checked
+                });
+
+                const res = await fetch('/api/publish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    avisar(`Link publicado! (${data.message})`, 'success');
+                    document.getElementById('directLinkForm').reset();
+                    document.getElementById('directLinkResult').classList.add('d-none');
+                    ofertaDeLinkDireto = null;
+                } else {
+                    avisar('Não foi publicado: ' + (data.error || data.message), 'danger');
+                }
+            } catch (err) {
+                avisar('Erro ao publicar: ' + err.message, 'danger');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = htmlOriginal;
+            }
+        });
+
+        // Os dois formulários salvam pelo mesmo caminho: só o que mudou vai no
+        // POST, e nada é enviado enquanto as configurações atuais não tiverem
+        // sido lidas do bot (ver salvarConfiguracoes).
+        function ligarFormularioDeConfiguracao(idForm, idBotao, prefixo, mensagemOk, aoTerminar) {
+            const form = document.getElementById(idForm);
+            if (!form) return;
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const btn = document.getElementById(idBotao);
+                const origHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Salvando...';
+
+                try {
+                    const ok = await salvarConfiguracoes(prefixo, mensagemOk);
+                    if (ok && aoTerminar) aoTerminar();
+                } catch (err) {
+                    alert('Erro na conexão: ' + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            });
+        }
+
+        ligarFormularioDeConfiguracao(
+            'quickSettingsForm', 'btnSaveQuick', 'quick',
+            '✨ Integração de Afiliados atualizada com sucesso!'
+        );
+
+        ligarFormularioDeConfiguracao(
+            'fullSettingsForm', 'btnSaveFull', 'modal',
+            '✨ Todas as configurações e tokens foram salvos!',
+            function () {
+                const modalElem = document.getElementById('settingsModal');
+                const modal = bootstrap.Modal.getInstance(modalElem);
+                if (modal) modal.hide();
+            }
+        );
+
+
+        let activeCategoryKey = 'tecnologia';
+        let activeCategoryName = 'Tecnologia Geral';
+
+        const NOMES_CATEGORIAS = {
+            'tecnologia': 'Tecnologia Geral',
+            'notebooks': 'Notebooks & PCs',
+            'smartphones': 'Smartphones 5G',
+            'hardware': 'Hardware & Placas',
+            'perifericos': 'Periféricos & Monitores',
+            'games': 'Games & Consoles',
+            'audio': 'Áudio & Fones',
+            'smart_home': 'Casa Inteligente',
+            'wearables': 'Smartwatches',
+            'tablets': 'Tablets & Kindle',
+            'tv_video': 'Smart TVs & Vídeo'
+        };
+
+        const TERMOS_PADRAO_CATEGORIAS = {
+            'tecnologia': 'notebook i7',
+            'notebooks': 'notebook gamer rtx',
+            'smartphones': 'smartphone 5g',
+            'hardware': 'placa de video rtx 4060',
+            'perifericos': 'monitor 144hz ips',
+            'games': 'playstation 5',
+            'audio': 'fone bluetooth cancelamento ruido',
+            'smart_home': 'alexa echo dot',
+            'wearables': 'smartwatch',
+            'tablets': 'ipad',
+            'tv_video': 'smart tv 4k'
+        };
+
+        function selecionarCategoria(btn, catKey) {
+            document.querySelectorAll('#categoriesPillsContainer .category-pill').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+            activeCategoryKey = catKey;
+            activeCategoryName = NOMES_CATEGORIAS[catKey] || catKey;
+
+            // Preenche sugestão no input de busca para conveniência
+            const sugestao = TERMOS_PADRAO_CATEGORIAS[catKey];
+            if (sugestao) {
+                document.getElementById('queryInput').value = sugestao;
+            }
+        }
+
+        async function buscarCategoriaAtiva() {
+            const platform = document.getElementById('platformInput').value;
+            const limit = document.getElementById('limitInput').value;
+
+            const btn = document.getElementById('btnBuscarCategoria');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const spinnerText = document.getElementById('spinnerText');
+            const resultsSection = document.getElementById('resultsSection');
+            const alertError = document.getElementById('alertError');
+            const alertNotification = document.getElementById('alertNotification');
+
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Buscando...`;
+
+            const nomePlataforma = document.getElementById('platformInput').selectedOptions[0].textContent.trim();
+            spinnerText.textContent = `Buscando principais produtos de ${activeCategoryName} em ${nomePlataforma}...`;
+
+            loadingSpinner.classList.remove('d-none');
+            resultsSection.classList.add('d-none');
+            alertError.classList.add('d-none');
+            alertNotification.classList.add('d-none');
+
+            try {
+                const response = await fetch('/api/scrape-category', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category: activeCategoryKey,
+                        platform: platform,
+                        limit: parseInt(limit)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Falha ao buscar categoria.');
+                }
+
+                currentResultsData = result.data || [];
+
+                if (currentResultsData.length === 0) {
+                    throw new Error(`Nenhum produto encontrado para a categoria ${activeCategoryName}.`);
+                }
+
+                renderResults(result);
+                avisar(
+                    `✨ ${currentResultsData.length} produtos coletados para a categoria: ${activeCategoryName}!` +
+                    (result.site ? ` ${result.site.mensagem}` : ''),
+                    result.site && !result.site.ok ? 'warning' : 'success'
+                );
+
+            } catch (err) {
+                document.getElementById('errorMessage').textContent = err.message;
+                alertError.classList.remove('d-none');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+                loadingSpinner.classList.add('d-none');
+            }
+        }
+
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const query = document.getElementById('queryInput').value;
+            const pages = document.getElementById('pagesInput').value;
+            const limit = document.getElementById('limitInput').value;
+            const platform = document.getElementById('platformInput').value;
+
+            const btnSearch = document.getElementById('btnSearch');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const spinnerText = document.getElementById('spinnerText');
+            const resultsSection = document.getElementById('resultsSection');
+            const alertError = document.getElementById('alertError');
+            const alertNotification = document.getElementById('alertNotification');
+
+            btnSearch.disabled = true;
+            btnSearch.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Pesquisando...`;
+            
+            const nomeDaBusca = document.getElementById('platformInput').selectedOptions[0].textContent.trim();
+            spinnerText.textContent = `Coletando ofertas em ${nomeDaBusca}...`;
+
+            loadingSpinner.classList.remove('d-none');
+            resultsSection.classList.add('d-none');
+            alertError.classList.add('d-none');
+            alertNotification.classList.add('d-none');
+
+            try {
+                const response = await fetch('/api/scrape', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, pages: parseInt(pages), limit: parseInt(limit), platform })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Falha ao realizar busca.');
+                }
+
+                currentResultsData = result.data || [];
+
+                if (currentResultsData.length === 0) {
+                    const motivo = (result.warnings && result.warnings.length)
+                        ? result.warnings.join(' | ')
+                        : 'Nenhum produto encontrado para este termo.';
+                    throw new Error(motivo);
+                }
+
+                if (result.warnings && result.warnings.length) {
+                    console.warn('Avisos da raspagem:', result.warnings);
+                }
+
+                renderResults(result);
+                // Envio automático para o site (SITE_ENVIO_AUTOMATICO=1 no config.txt).
+                if (result.site) avisar(result.site.mensagem, result.site.ok ? 'success' : 'warning');
+
+            } catch (err) {
+                document.getElementById('errorMessage').textContent = err.message;
+                alertError.classList.remove('d-none');
+            } finally {
+                btnSearch.disabled = false;
+                btnSearch.innerHTML = `<i class="fa-solid fa-rocket me-2"></i> Pesquisar`;
+                loadingSpinner.classList.add('d-none');
+            }
+        });
+
+        function renderResults(res) {
+            const data = res.data || [];
+            const stats = res.stats || {};
+
+            document.getElementById('statTotal').textContent = stats.total;
+            document.getElementById('statMenor').textContent = `R$ ${stats.menor_preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('statMedio').textContent = `R$ ${stats.preco_medio.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('statFrete').textContent = `${stats.pct_frete_gratis}%`;
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            document.getElementById('selectAllCheckbox').checked = false;
+            updateSelectedCount();
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">Nenhum produto encontrado.</td></tr>`;
+            } else {
+                data.forEach((item, index) => {
+                    const precoAtualNum = item.valor_depois !== undefined && item.valor_depois !== null ? item.valor_depois : item.preco;
+                    const precoAntigoNum = item.valor_antes !== undefined && item.valor_antes !== null ? item.valor_antes : item.preco_original;
+
+                    const priceFormatted = precoAtualNum ? `R$ ${Number(precoAtualNum).toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'N/I';
+                    const originalPriceFormatted = (precoAntigoNum && precoAntigoNum > precoAtualNum)
+                        ? `R$ ${Number(precoAntigoNum).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`
+                        : '';
+                    
+                    const imgTag = item.imagem_url 
+                        ? `<img src="${item.imagem_url}" class="product-img" alt="Produto">` 
+                        : `<div class="product-img d-flex align-items-center justify-content-center bg-dark text-muted"><i class="fa-solid fa-image"></i></div>`;
+
+                    const loja = identificarLoja(item.plataforma);
+                    const platformBadge = `<span class="badge ${loja.badge} px-2 py-1"><i class="${loja.icone} me-1"></i> ${loja.rotulo}</span>`;
+
+                    const shippingBadge = item.frete_gratis 
+                        ? `<span class="badge badge-shipping"><i class="fa-solid fa-truck-fast me-1"></i> Grátis</span>`
+                        : `<span class="badge bg-secondary bg-opacity-50 text-muted">Pago</span>`;
+
+                    const sellerName = item.vendedor || loja.nomeCompleto;
+                    
+                    const descontoTexto = item.desconto || item.destaque;
+                    const destaqueBadge = descontoTexto 
+                        ? `<span class="badge badge-discount-tag mb-1 d-inline-block"><i class="fa-solid fa-tag me-1"></i> ${descontoTexto.toUpperCase()}</span><br>`
+                        : '';
+
+                    const categoryBadge = item.categoria
+                        ? `<span class="badge bg-dark border border-secondary text-warning small me-1 mb-1"><i class="fa-solid fa-folder me-1"></i>${item.categoria}</span>`
+                        : '';
+
+                    const couponBadge = item.cupom 
+                        ? `<span class="badge badge-coupon px-2 py-1"><i class="fa-solid fa-ticket me-1"></i> ${item.cupom}</span>`
+                        : `<span class="text-muted small">-</span>`;
+
+                    const buttonClass = loja.botao;
+                    const buttonIcon = loja.icone;
+
+                    const linkButton = item.link 
+                        ? `<a href="${item.link}" target="_blank" rel="noopener" class="btn btn-sm ${buttonClass} fw-semibold text-nowrap" title="Abrir anúncio"><i class="${buttonIcon}"></i></a>`
+                        : `<span class="text-muted small">-</span>`;
+
+                    const postButton = `<button class="btn btn-sm btn-publish fw-bold text-nowrap ms-1" onclick="openEditPostModal(${index})" title="Editar & Transmitir Oferta"><i class="fa-solid fa-pen-to-square me-1"></i> Postar</button>`;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="text-center">
+                            <input type="checkbox" class="form-check-input deal-checkbox" data-index="${index}" onchange="updateSelectedCount()">
+                        </td>
+                        <td>${imgTag}</td>
+                        <td>
+                            ${platformBadge}
+                            ${categoryBadge ? `<div class="mt-1">${categoryBadge}</div>` : ''}
+                        </td>
+                        <td>
+                            ${destaqueBadge}
+                            <a href="${item.link || '#'}" target="_blank" class="text-light fw-medium text-decoration-none hover-warning">
+                                ${item.nome_produto || item.titulo}
+                            </a>
+                            <div class="small text-muted mt-1"><i class="fa-solid fa-tag me-1"></i> Condição: ${item.condicao || 'Novo'}</div>
+                        </td>
+                        <td class="text-end">
+                            ${originalPriceFormatted ? `<div class="badge-original-price">De: ${originalPriceFormatted}</div>` : ''}
+                            <div class="price-tag">Por: ${priceFormatted}</div>
+                        </td>
+                        <td class="text-center">${couponBadge}</td>
+                        <td><span class="badge bg-dark border border-secondary text-info"><i class="fa-solid fa-store me-1"></i> ${sellerName}</span></td>
+                        <td class="text-center">${shippingBadge}</td>
+                        <td class="text-center d-flex align-items-center justify-content-center gap-1">
+                            ${linkButton}
+                            ${postButton}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('resultsSection').classList.remove('d-none');
+        }
+
+        function toggleSelectAll(masterCheckbox) {
+            const checkboxes = document.querySelectorAll('.deal-checkbox');
+            checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const selected = document.querySelectorAll('.deal-checkbox:checked');
+            document.getElementById('selectedCount').textContent = selected.length;
+        }
+
+        async function publishSelectedBatch() {
+            const selectedBoxes = document.querySelectorAll('.deal-checkbox:checked');
+            if (selectedBoxes.length === 0) {
+                alert('Selecione pelo menos uma oferta na tabela para publicar!');
+                return;
+            }
+
+            const selectedItems = [];
+            selectedBoxes.forEach(cb => {
+                const idx = parseInt(cb.getAttribute('data-index'));
+                if (currentResultsData[idx]) {
+                    selectedItems.push(currentResultsData[idx]);
+                }
+            });
+
+            const btn = document.getElementById('btnPublishBatch');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Enviando ${selectedItems.length}...`;
+
+            try {
+                const res = await fetch('/api/publish-batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ products: selectedItems })
+                });
+
+                const data = await res.json();
+
+                const notif = document.getElementById('alertNotification');
+                const notifMsg = document.getElementById('notificationMessage');
+
+                if (data.success) {
+                    notif.className = "alert alert-success shadow alert-dismissible fade show my-3";
+                    notifMsg.textContent = `✨ ${data.message}`;
+                } else {
+                    notif.className = "alert alert-warning shadow alert-dismissible fade show my-3";
+                    notifMsg.textContent = `⚠️ Aviso: ${data.message || data.error}`;
+                }
+                notif.classList.remove('d-none');
+
+            } catch (err) {
+                alert('Erro ao publicar em lote: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+
+        /**
+         * Manda as ofertas para a caixa de entrada do site (Oportunidades).
+         * Com itens marcados envia só eles; sem nenhum, pergunta se envia a tabela toda.
+         */
+        async function enviarParaSite() {
+            if (!currentResultsData || currentResultsData.length === 0) {
+                alert('Faça uma busca antes de enviar para o site.');
+                return;
+            }
+
+            const marcados = [];
+            document.querySelectorAll('.deal-checkbox:checked').forEach(cb => {
+                const item = currentResultsData[parseInt(cb.getAttribute('data-index'))];
+                if (item) marcados.push(item);
+            });
+
+            let itens = marcados;
+            if (itens.length === 0) {
+                if (!confirm(`Nenhuma oferta marcada. Enviar as ${currentResultsData.length} da tabela para o site?`)) return;
+                itens = currentResultsData;
+            }
+
+            const btn = document.getElementById('btnSendToSite');
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Enviando ${itens.length}...`;
+
+            try {
+                const res = await fetch('/api/send-to-site', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ products: itens, origem: activeCategoryKey ? `categoria: ${activeCategoryKey}` : 'portal' })
+                });
+                const data = await res.json();
+                avisar(data.message || data.error || 'Sem resposta do site.', data.success ? 'success' : 'warning');
+            } catch (err) {
+                avisar('Erro ao enviar para o site: ' + err.message, 'danger');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = original;
+            }
+        }
+
+        async function downloadExport(format) {
+            if (!currentResultsData || currentResultsData.length === 0) {
+                alert('Nenhum produto na tabela para baixar!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/export/${format}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        products: currentResultsData,
+                        category: activeCategoryKey || 'produtos_tecnologia'
+                    })
+                });
+
+                if (!response.ok) throw new Error('Falha ao gerar arquivo.');
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `produtos_${activeCategoryKey || 'export'}.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('Erro ao baixar exportação: ' + err.message);
+            }
+        }
+
+        document.getElementById('tableFilter').addEventListener('keyup', function() {
+            const filterValue = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#tableBody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filterValue) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

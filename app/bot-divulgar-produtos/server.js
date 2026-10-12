@@ -12,6 +12,8 @@ const { construirLink, rotuloDaPlataforma, linkDaLoja, esquemaDeAfiliados, linkS
 const { scrapeProduct } = require('./scraper');
 const { criarTransporte } = require('./transportes');
 const { iniciarFilaDoSite } = require('./fila-site');
+const { criarEspelhoDoSite } = require('./espelho-site');
+const { gerarArteCupom, gerarExemplo } = require('./arte-cupom');
 const crypto = require('crypto');
 const session = require('express-session');
 const FormData = require('form-data');
@@ -88,6 +90,9 @@ const requireApiToken = (req, res, next) => {
 // externo) mora em ./transportes; aqui só existe a interface.
 const transporte = criarTransporte({ db });
 transporte.iniciar();
+
+// O que for publicado nos grupos pelo /api/post-deal entra também no site.
+const espelho = criarEspelhoDoSite();
 
 /**
  * Normaliza o destino no formato que o WhatsApp espera.
@@ -256,6 +261,24 @@ app.get('/api/metrics', requireApiToken, (req, res) => {
  * nos modelos de deeplink nem nos parâmetros extras. Agora a fonte é o
  * afiliados.js, o mesmo lugar que já gerava as colunas do banco.
  */
+/**
+ * Desconecta o WhatsApp (botão do portal): desfaz o pareamento no celular e
+ * apaga a sessão. Em alguns segundos aparece um QR Code novo para ligar o
+ * mesmo número de novo ou outro.
+ */
+app.post('/api/wa-logout', requireApiToken, async (req, res) => {
+    try {
+        if (typeof transporte.desconectar !== 'function') {
+            return res.status(400).json({ success: false, error: 'Este transporte de WhatsApp não permite desconectar daqui.' });
+        }
+        await transporte.desconectar();
+        console.log('--- WHATSAPP DESCONECTADO PELO PORTAL ---');
+        res.json({ success: true, message: 'WhatsApp desconectado. Um QR Code novo aparece em alguns segundos.' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 app.get('/api/affiliate-schema', requireApiToken, (req, res) => {
     res.json({ success: true, lojas: esquemaDeAfiliados() });
 });
@@ -511,7 +534,13 @@ app.post('/api/post-deal', requireApiToken, async (req, res) => {
             link_afiliado,
             sendTelegram = true,
             sendWhatsApp = true,
-            whatsappGroup
+            whatsappGroup,
+            // Vindos do caçador de cupons do piloto (todos opcionais).
+            cupom_desconto,
+            preco_com_cupom,
+            cupom_validade,
+            cupom_como,
+            cupom_minimo
         } = req.body;
 
         if (!titulo || !link) {
@@ -544,8 +573,29 @@ app.post('/api/post-deal', requireApiToken, async (req, res) => {
         // Destaque
         let destaqueText = destaque ? `🔥 <b>${destaque.toUpperCase()}!</b>\n\n` : `🔥 <b>OFERTA IMPERDÍVEL!</b>\n\n`;
 
-        // Cupom
-        let couponText = cupom ? `\n🎟️ <b>Use o Cupom:</b> <code>${cupom}</code>\n` : '';
+        // Cupom: nome (código), valor, preço final com o cupom e validade.
+        // Cupom sem código (Amazon, "ative na página") sai com o valor e a
+        // instrução no lugar do nome.
+        let couponText = '';
+        if (cupom || cupom_desconto) {
+            const limpar = (t) => String(t).replace(/[<>]/g, '').trim();
+            if (cupom) {
+                couponText = `\n🎟️ <b>Use o cupom:</b> <code>${limpar(cupom)}</code>${cupom_desconto ? ` (${limpar(cupom_desconto)})` : ''}\n`;
+            } else {
+                couponText = `\n🎟️ <b>Cupom de ${limpar(cupom_desconto)}</b>${cupom_como ? ` — ${limpar(cupom_como)}` : ''}\n`;
+            }
+            if (typeof preco_com_cupom === 'number' && preco_com_cupom > 0) {
+                couponText += `💰 <b>Com o cupom: ≈ R$ ${preco_com_cupom.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b>\n`;
+            }
+            if (typeof cupom_minimo === 'number') {
+                couponText += cupom_minimo > 0
+                    ? `🛒 Compra mínima: R$ ${cupom_minimo.toLocaleString('pt-BR', {minimumFractionDigits: 0, maximumFractionDigits: 2})}\n`
+                    : `🛒 Sem compra mínima\n`;
+            }
+            if (cupom_validade) {
+                couponText += `⏳ Cupom válido até ${limpar(cupom_validade)}\n`;
+            }
+        }
 
         const safeTitle = titulo.replace(/[<>]/g, '');
         const platTag = rotuloDaPlataforma(plataforma, link);
@@ -568,11 +618,25 @@ app.post('/api/post-deal', requireApiToken, async (req, res) => {
         let results = [];
         let errors = [];
 
+        // Aviso de cupom do piloto: a imagem é a arte gerada na hora (logo do
+        // grupo + loja + código, mínimo e validade). Sem arte, vale a foto comum.
+        let arteBuffer = null;
+        if (req.body.arte_cupom && typeof req.body.arte_cupom === 'object') {
+            arteBuffer = await gerarArteCupom(req.body.arte_cupom);
+        }
+
         // 1. Disparo para o Telegram
         if (sendTelegram && telegramReady(botToken, telegramChatId)) {
             try {
                 const telegramUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
-                if (imagem_url) {
+                if (arteBuffer) {
+                    const form = new FormData();
+                    form.append('chat_id', telegramChatId);
+                    form.append('caption', caption);
+                    form.append('parse_mode', 'HTML');
+                    form.append('photo', arteBuffer, { filename: 'cupom.jpg', contentType: 'image/jpeg' });
+                    await axios.post(telegramUrl, form, { headers: form.getHeaders() });
+                } else if (imagem_url) {
                     await axios.post(telegramUrl, {
                         chat_id: telegramChatId,
                         photo: imagem_url,
@@ -601,7 +665,8 @@ app.post('/api/post-deal', requireApiToken, async (req, res) => {
                 await transporte.enviar({
                     destino: normalizarJid(whatsappGroupId),
                     texto: whatsappText,
-                    imagemUrl: imagem_url || null
+                    imagemBuffer: arteBuffer || null,
+                    imagemUrl: arteBuffer ? null : (imagem_url || null)
                 });
                 results.push('WhatsApp');
             } catch (err) {
@@ -610,9 +675,16 @@ app.post('/api/post-deal', requireApiToken, async (req, res) => {
             }
         }
 
+        // Espelho dos grupos: a oferta entra no catálogo do site com o mesmo
+        // link de afiliado. `espelhar_no_site: false` no pedido pula este passo.
+        if (results.length && req.body.espelhar_no_site !== false) {
+            espelho.registrar(req.body, { canais: results, linkAfiliado: affiliateUrl });
+        }
+
         return res.json({
             success: results.length > 0,
             channels: results,
+            link_afiliado: affiliateUrl,
             errors: errors,
             message: results.length > 0 ? `Postado com sucesso em: ${results.join(', ')}` : (errors.length > 0 ? errors.join('; ') : 'Nenhum canal ativo ou configurado.')
         });
@@ -740,7 +812,9 @@ function htmlToWhatsApp(html) {
 
 app.listen(PORT, BIND_HOST, () => {
     console.log(`Servidor rodando em http://localhost:${PORT} (escutando em ${BIND_HOST})`);
+    // Arte de exemplo em arte\exemplo-cupom.jpg, para conferir o visual.
+    gerarExemplo();
 });
 
-// Publicações de WhatsApp feitas no painel do site (Tech Wolf > Publicações).
+// Publicações de WhatsApp feitas no painel do site (Tech Lobo > Publicações).
 iniciarFilaDoSite({ transporte, resolveCredentials, normalizarJid, htmlToWhatsApp });

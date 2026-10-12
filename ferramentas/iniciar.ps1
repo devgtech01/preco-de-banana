@@ -123,11 +123,12 @@ if ($semLogin) { $env:SEM_LOGIN = "1" } else { $env:SEM_LOGIN = "0" }
 # Sem isto o portal procuraria o bot no host "bot-service" (nome do container).
 $env:BOT_API_URL = "http://127.0.0.1:$portaBot"
 
-# Integracao com o site (Tech Ofertas): para onde vao as ofertas coletadas.
+# Integracao com o site (Tech Lobo): espelho dos grupos e ofertas coletadas.
 # So preenche o que estiver no config.txt; senao vale o .env.local do portal.
 if ("$($cfg.SITE_URL)".Trim())         { $env:SITE_API_URL = "$($cfg.SITE_URL)".Trim() }
 if ("$($cfg.SITE_TOKEN)".Trim())       { $env:SITE_API_TOKEN = "$($cfg.SITE_TOKEN)".Trim() }
 if ("$($cfg.ENVIAR_PARA_SITE)".Trim()) { $env:SITE_ENVIO_AUTOMATICO = "$($cfg.ENVIAR_PARA_SITE)".Trim() }
+if ("$($cfg.ESPELHAR_NO_SITE)".Trim()) { $env:ESPELHAR_NO_SITE = "$($cfg.ESPELHAR_NO_SITE)".Trim() }
 
 # Tira o Firefox de %LOCALAPPDATA% se a pasta embarcada existir no pendrive.
 if (Test-Path $browsers) {

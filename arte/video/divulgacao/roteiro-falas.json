@@ -1,0 +1,33 @@
+{
+  "titulo": "Tech Ofertas - divulgação do grupo",
+  "video": "techofertas-divulgacao-sem-voz.mp4",
+  "efeitos": "efeitos-e-trilha.wav",
+  "observacao": "Ofertas postadas no grupo em 10/10/2026. Cada fala começa no início da cena e precisa terminar antes do 'ate'.",
+  "cenas": [
+    {
+      "fala": "Quer ficar por dentro das melhores ofertas de tecnologia, mas tá cansado de garimpar?",
+      "inicio": 0.1,
+      "ate": 6.0
+    },
+    {
+      "fala": "No nosso grupo a gente garimpa promoção de tecnologia todo santo dia.",
+      "inicio": 6.1,
+      "ate": 10.6
+    },
+    {
+      "fala": "Só no dia 10 saiu SSD de 1 tera por 157 reais e caixa da JBL por 193.",
+      "inicio": 10.8,
+      "ate": 18.8
+    },
+    {
+      "fala": "E promoção boa some rápido, então quem tá no grupo vê primeiro.",
+      "inicio": 18.9,
+      "ate": 23.2
+    },
+    {
+      "fala": "Entra no nosso grupo de ofertas e fica por dentro de todas as ofertas relâmpago do mundo tech. Link na bio!",
+      "inicio": 23.3,
+      "ate": 30.7
+    }
+  ]
+}

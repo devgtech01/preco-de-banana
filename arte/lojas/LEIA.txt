@@ -1,0 +1,8 @@
+ICONES DAS LOJAS
+
+A arte do aviso de cupom e' a logo do canal (arte\logo-grupo.png) com o
+icone da loja do cupom no canto. Os icones ficam aqui, com estes nomes:
+
+  kabum.png  mercadolivre.png  amazon.png  aliexpress.png  shopee.png  magalu.png
+
+Para trocar um icone, substitua o arquivo (PNG ou JPG). Nao precisa reiniciar.

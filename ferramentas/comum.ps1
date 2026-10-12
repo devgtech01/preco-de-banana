@@ -18,19 +18,24 @@ function Get-Config {
         SITE_URL              = ""
         SITE_TOKEN            = ""
         ENVIAR_PARA_SITE      = 0
+        ESPELHAR_NO_SITE      = 1
     }
 
-    $arquivo = Join-Path $Raiz "config.txt"
-    if (-not (Test-Path $arquivo)) { return $padrao }
+    # config.txt vai para o git; config.local.txt (segredos, como o SITE_TOKEN)
+    # fica fora dele e, quando tem valor, vale mais. Linha vazia nao apaga nada.
+    foreach ($nome in @("config.txt", "config.local.txt")) {
+        $arquivo = Join-Path $Raiz $nome
+        if (-not (Test-Path $arquivo)) { continue }
 
-    foreach ($linha in (Get-Content $arquivo)) {
-        $texto = $linha.Trim()
-        if ($texto -eq "" -or $texto.StartsWith("#")) { continue }
-        $par = $texto.Split("=", 2)
-        if ($par.Count -eq 2) {
-            $chave = $par[0].Trim()
-            $valor = $par[1].Trim()
-            if ($padrao.ContainsKey($chave)) { $padrao[$chave] = $valor }
+        foreach ($linha in (Get-Content $arquivo -Encoding UTF8)) {
+            $texto = $linha.Trim()
+            if ($texto -eq "" -or $texto.StartsWith("#")) { continue }
+            $par = $texto.Split("=", 2)
+            if ($par.Count -eq 2) {
+                $chave = $par[0].Trim()
+                $valor = $par[1].Trim()
+                if ($padrao.ContainsKey($chave) -and $valor -ne "") { $padrao[$chave] = $valor }
+            }
         }
     }
     return $padrao

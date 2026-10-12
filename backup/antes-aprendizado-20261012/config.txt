@@ -1,0 +1,119 @@
+# Ajustes do modo portatil. Edite com o Bloco de Notas.
+# Linhas com # sao comentarios.
+
+# Porta do portal (a tela que voce usa). Se estiver ocupada nesta maquina,
+# o INICIAR.bat procura a proxima livre sozinho - nao precisa mexer aqui.
+PORTA_PORTAL=5000
+
+# Porta interna do bot (WhatsApp/Telegram). Idem.
+PORTA_BOT=3005
+
+# 1 = abre o navegador sozinho quando tudo estiver pronto. 0 = nao abre.
+ABRIR_NAVEGADOR=1
+
+# 1 = so aceita conexao desta propria maquina (recomendado).
+# 0 = libera para outros aparelhos do mesmo wifi (celular, notebook).
+#     Use 0 apenas em rede que voce confia: quem alcancar a porta vai ver a
+#     tela de login, e o bot publica no SEU grupo.
+SOMENTE_ESTA_MAQUINA=1
+
+# 0 = entra direto, sem tela de login (padrao no modo portatil).
+# 1 = pede usuario e senha.
+#     Rodando so nesta maquina, a senha nao protege nada: quem esta aqui abre
+#     o .env.local do pendrive e le a senha. Por isso o padrao e' entrar direto.
+#     TRAVA DE SEGURANCA: se voce colocar SOMENTE_ESTA_MAQUINA=0 acima, o login
+#     volta a ser exigido automaticamente, senao qualquer um do mesmo wifi
+#     publicaria no seu grupo de WhatsApp.
+PEDIR_SENHA=0
+
+# --- Site (Tech Lobo) -----------------------------------------------------
+# O site mostra no catalogo as ofertas que o bot publica nos grupos, com o
+# mesmo link de afiliado. Painel do site: Admin > Oportunidades.
+# Endereco do site, sem barra no final. Ex.: https://techlobo.com.br
+SITE_URL=http://localhost:3000
+# O mesmo valor de INTEGRATION_API_TOKEN configurado no servidor do site.
+# Quem tiver este token consegue mandar ofertas para o seu site. Por isso ele
+# NAO fica aqui (este arquivo vai para o git): coloque no config.local.txt,
+# ao lado deste, que fica fora do git. Valor la vale mais que o daqui.
+SITE_TOKEN=
+# 1 = toda oferta publicada nos grupos (pelo piloto ou pelo portal) entra
+#     sozinha no catalogo do site, com o mesmo link de afiliado do grupo.
+# 0 = nao manda (o site fica so com o que voce cadastrar la).
+ESPELHAR_NO_SITE=1
+# 1 = toda busca manual no portal tambem vai para a caixa de entrada do site
+#     (Oportunidades), para voce aprovar. 0 = so pelo botao "Enviar para o site".
+ENVIAR_PARA_SITE=0
+
+# --- Piloto automatico ----------------------------------------------------
+# Busca sozinho nas lojas, escolhe as melhores ofertas e publica no WhatsApp e
+# no Telegram com o seu link de afiliado. Estas linhas sao relidas a cada
+# ciclo: da para mudar sem reiniciar. Painel e historico: no portal.
+# 1 = ligado. 0 = desligado (o portal continua funcionando normal).
+PILOTO_ATIVO=1
+# Intervalo entre ciclos, em minutos (sorteado entre o minimo e o maximo).
+PILOTO_INTERVALO_MIN=10
+PILOTO_INTERVALO_MAX=20
+# Lojas buscadas. Shopee fica de fora ate a API de afiliados ser liberada.
+PILOTO_LOJAS=mercadolivre,amazon,kabum,aliexpress
+# Prioridade na hora de escolher o que postar: entre as ofertas que passaram
+# em todas as regras, sai primeiro a da loja que vem antes nesta lista (a nota
+# so desempata dentro da mesma loja). Loja fora da lista fica por ultimo.
+# Com PILOTO_MAX_POR_LOJA_NO_CICLO=1, cada ciclo posta a melhor oferta de cada
+# loja, na ordem: primeiro Mercado Livre, depois Amazon, e assim por diante.
+PILOTO_PRIORIDADE_LOJAS=mercadolivre,amazon,kabum,aliexpress
+# Categorias em rodizio: "todas" ou chaves separadas por virgula
+# (tecnologia,notebooks,smartphones,hardware,perifericos,games,audio,
+#  smart_home,wearables,tablets,tv_video).
+PILOTO_CATEGORIAS=todas
+# Quantas categorias cada ciclo cobre (1 categoria leva de 3 a 6 minutos).
+PILOTO_CATEGORIAS_POR_CICLO=1
+# Produtos lidos por loja em cada termo de busca.
+PILOTO_ITENS_POR_LOJA=8
+# Limites de publicacao (WhatsApp bane numero que dispara demais).
+PILOTO_POSTS_POR_CICLO=2
+PILOTO_MAX_POR_HORA=8
+PILOTO_MAX_POR_LOJA_NO_CICLO=2
+# Desconto minimo (%) e preco minimo (R$) para virar postagem.
+PILOTO_DESCONTO_MIN=15
+PILOTO_PRECO_MIN=15
+# Horario sem postagens (continua coletando precos). Ex.: 23-7. Vazio = nunca.
+PILOTO_SILENCIO=23-7
+# O mesmo produto so volta depois de X dias, a nao ser que o preco caia mais
+# Y% em relacao a ultima postagem.
+PILOTO_REPOSTAR_DIAS=3
+PILOTO_QUEDA_PARA_REPOSTAR=5
+# Preco de mercado: cada busca traz o mesmo produto de varias lojas. Oferta
+# acima de X vezes o preco tipico das OUTRAS lojas (e fora da curva) e'
+# descartada, e preco "de" acima desse teto e' tratado como inventado (o post
+# sai sem o "De:" e com o desconto real). Ex.: 1.3 = ate 30% acima do tipico.
+PILOTO_TETO_MERCADO=1.3
+# 1 = nao posta produto usado, seminovo, recondicionado, vitrine ou open box.
+PILOTO_BLOQUEAR_USADOS=1
+# 1 = quando o piloto ve de novo um produto que ja postou, avisa o site do
+#     preco atual: o catalogo acompanha a loja e a oferta que some sai do ar
+#     sozinha. Precisa de SITE_URL e SITE_TOKEN.
+PILOTO_ATUALIZAR_SITE=1
+
+# --- Cacador de cupons (parte do piloto) ----------------------------------
+# Le os cupons oficiais da KaBuM! (pagina kabum.com.br/hotsite/cupons), confere
+# em quais produtos cada um vale e aplica o cupom no preco das ofertas. Na
+# Amazon, Mercado Livre e AliExpress usa o cupom que aparece no anuncio.
+# O nome do cupom, o preco com cupom e a validade vao na postagem.
+# 1 = ligado. 0 = desligado.
+PILOTO_CUPONS=1
+# De quantas em quantas horas reler os cupons e as listas de produtos.
+PILOTO_CUPONS_HORAS=2
+# Quantas postagens por ciclo podem vir direto das listas de cupom (alem das
+# ofertas da categoria que por acaso tenham cupom).
+PILOTO_CUPOM_POSTS_POR_CICLO=1
+# Paginas (de 100 produtos) lidas da lista de cada cupom.
+PILOTO_CUPOM_PAGINAS=10
+
+# Cupons do Mercado Livre (central de cupons, exige o LOGIN-MERCADOLIVRE.bat).
+# So entram os cupons gerais de campanha ("Aplicar"), nas categorias abaixo.
+PILOTO_CUPONS_ML=1
+PILOTO_CUPONS_ML_CATEGORIAS=computing,consumer_electronics,cellphones_and_phones,games,camera_and_accesories
+# Avisos de cupom (postagem do cupom em si, com link afiliado da loja e a
+# compra minima): no maximo X por dia, com pelo menos Y minutos entre eles.
+PILOTO_AVISOS_CUPOM_POR_DIA=6
+PILOTO_AVISO_CUPOM_INTERVALO=90
